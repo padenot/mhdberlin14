@@ -1,0 +1,597 @@
+<meta charset=utf-8>
+<style>
+canvas {
+  border: 1px solid gray;
+  display: block;
+  margin-bottom: 1em;
+}
+button {
+  border: 1px solid gray;
+  font-family: monospace;
+  display: block;
+}
+
+#sample {
+  display: none;
+}
+
+#params {
+  width: 30em;
+  font-family: monospace;
+  line-height: 2.1em;
+  //float: right;
+}
+
+
+#params div {
+  display: flex;
+}
+
+#params span {
+  flex: 1 1 5em;
+}
+
+#params input {
+  flex: 1 1 15em;
+}
+
+#params .label {
+  flex: 1 1 10em;
+}
+
+</style>
+<script>
+var k;
+
+function clamp(v, min, max) {
+  return Math.max(Math.min(v, max), min);
+}
+
+function extend(base) {
+  sub.prototype = base.prototype;
+  return new sub();
+}
+function sub() {}
+
+window.onload = function() {
+
+  document.querySelector("#instrument").addEventListener("change", function(e) {
+    loadinst();
+  });
+
+  try {
+    var ac = new AudioContext();
+  } catch(e) {
+    var ac = new webkitAudioContext();
+  }
+
+  function Instrument(ctx) {
+    this.params = {};
+    this.ctx = ctx;
+  }
+
+  Instrument.prototype.init = function(ctx) {
+    this.params = {}
+    this.ctx = ctx;
+  }
+
+  Instrument.prototype.get_params = function() {
+    return this.params;
+  }
+  Instrument.prototype.register_param = function(name, initial, min, max, step) {
+    this.params[name] = {};
+    this.params[name].value = initial;
+    this.params[name].min = min;
+    this.params[name].max = max;
+    this.params[name].step = step;
+  }
+  Instrument.prototype.register_param2 = function(audioparam, name, initial, min, max, step) {
+    this.register_param(name, initial, min, max, step);
+    this.params[name].audio_param = audioparam;
+  }
+
+  Instrument.prototype.set_param = function(key, val) {
+    var p = this.params[key];
+    p.value = clamp(val, p.min, p.max);
+    if (p.audio_param) {
+      if (p.audio_param instanceof Array) {
+        p.audio_param.forEach(function(e) {
+          e.value = p.value;
+        });
+      } else {
+        p.audio_param.value = p.value;
+      }
+    }
+  }
+
+  Instrument.prototype.copy_params = function(other) {
+    this.params = other.get_params();
+  }
+
+  Instrument.prototype.get_param = function(name) {
+    return this.params[name];
+  }
+
+  kick.prototype = extend(Instrument);
+
+  function kick(ctx) {
+    this.body = ctx.createOscillator();
+    this.body.type = "sine";
+
+    Instrument.call(this, ctx);
+
+    this.register_param("highfreq", 200, 50, 400, 1);
+    this.register_param("basefreq", 60, 30, 150, 1);
+    this.register_param("endfreq", 30, 15, 100, 1);
+    this.register_param("bodyfreqdecay", 0.3, 0.01, 2, 0.01);
+    this.register_param("bodydecay", 0.07, 0.01, 2, 0.01);
+    this.register_param("bodygain", 1, 0, 2, 0.01);
+
+    this.register_param("popfreqdecay", 0.3, 0.01, 2, 0.01);
+    this.register_param("popdecay", 0.02, 0.001, 0.1, 0.001);
+    this.register_param("popgain", 0.5, 0, 2, 0.01);
+    this.register_param("pophigh", 150, 50, 500, 1);
+    this.register_param("poplow", 100, 30, 400, 1);
+
+    this.register_param("clickdecay", 0.0001, 0.001, 0.005, 0.00001);
+    this.register_param("clickgain", 0.1, 0, 2, 0.01);
+    this.register_param("clickfreq", 40, 20, 10000, 1);
+
+    this.body.frequency.value = this.params["basefreq"].value;
+    this.body.start(0);
+
+    this.pop = ctx.createOscillator();
+    this.pop.type = "sine";
+    this.pop.frequency.value = this.params["pophigh"].value;
+    this.pop.start(0);
+
+    this.click = ctx.createOscillator();
+    this.click.type = "square";
+    this.click.frequency.value = this.params["clickfreq"].value;
+    this.click.start(0);
+
+    this.adsrbody = ctx.createGain();
+    this.adsrbody.gain.setValueAtTime(0, 0);
+
+    this.adsrpop = ctx.createGain();
+    this.adsrpop.gain.setValueAtTime(0, 0);
+
+    this.adsrclick = ctx.createGain();
+    this.adsrclick.gain.setValueAtTime(0, 0);
+
+    this.body.connect(this.adsrbody);
+    this.pop.connect(this.adsrpop);
+    this.click.connect(this.adsrclick);
+
+    // does not process
+    this.lowpass = ctx.createBiquadFilter();
+    this.lowpass.type = "lowpass";
+    this.lowpass.frequency.value = 20000;
+
+    this.mixer = ctx.createGain();
+    this.mixer.gain.value = 0.6;
+    this.mixer.connect(this.lowpass)
+
+    this.adsrbody.connect(this.mixer);
+    this.adsrpop.connect(this.mixer);
+    this.adsrclick.connect(this.mixer);
+  }
+
+  kick.prototype.connect = function(node) {
+    this.lowpass.connect(node);
+  }
+  kick.prototype.trigger = function(velocity, time) {
+    var t = time || this.ctx.currentTime;
+    var v = velocity2gain(velocity);
+
+    this.body.frequency.value = this.params["basefreq"].value;
+    this.pop.frequency.value = this.params["pophigh"].value;
+    this.click.frequency.value = this.params["clickfreq"].value;
+
+    this.body.frequency.cancelScheduledValues(t);
+    this.body.frequency.setValueAtTime(this.params["highfreq"].value, t);
+    this.body.frequency.linearRampToValueAtTime(this.params["basefreq"].value, t + 0.001, 0.001);
+    this.body.frequency.setTargetAtTime(this.params["endfreq"].value, t + 0.002, this.params["bodyfreqdecay"].value)
+
+    this.pop.frequency.cancelScheduledValues(t);
+    this.pop.frequency.setValueAtTime(this.params["pophigh"].value, t);
+    this.pop.frequency.setTargetAtTime(this.params["poplow"].value, t + 0.0001, this.params["popfreqdecay"].value);
+
+    // adsr
+    this.adsrbody.gain.cancelScheduledValues(t);
+    this.adsrbody.gain.setValueAtTime(0, t);
+    this.adsrbody.gain.linearRampToValueAtTime(v * this.params["bodygain"].value, t + 0.01);
+    this.adsrbody.gain.setTargetAtTime(0, t + 0.02, this.params["bodydecay"].value);
+
+    // this.adsrpop.gain.cancelScheduledValues(t);
+    // this.adsrpop.gain.setValueAtTime(0, t);
+    // this.adsrpop.gain.linearRampToValueAtTime(v * this.params["popgain"].value, t + 01);
+    // this.adsrpop.gain.setTargetAtTime(0, t + 0.02, this.params["popdecay"].value);
+
+    this.adsrclick.gain.cancelScheduledValues(t);
+    this.adsrclick.gain.setValueAtTime(0, t);
+    this.adsrclick.gain.setValueAtTime(v * this.params["clickgain"].value, t + 0.0001);
+    this.adsrclick.gain.setTargetAtTime(0, t + 0.0002, this.params["clickdecay"].value);
+  }
+
+  kick.prototype.name = function() {
+    return "kick";
+  }
+
+  snare.prototype = extend(Instrument);
+
+  function snare(ctx) {
+    Instrument.call(this, ctx);
+
+    this.register_param("noisegain", 0.6, 0.0, 2.0, 0.01);
+    this.register_param("noisedecay", 0.03, 0.01, 2, 0.01);
+    this.register_param("filterfreq", 3000, 100, 20000, 1);
+    this.register_param("osc1freq", 111 + 175, 100, 20000, 1);
+    this.register_param("osc2freq", 111 + 224, 100, 20000, 1);
+    this.register_param("osc3freq", 330, 100, 20000, 1);
+    this.register_param("osc4freq", 180, 100, 20000, 1);
+    this.register_param("oscgain", 1.0, 0.0, 2.0, 0.01);
+    this.register_param("oscdecay", 0.01, 0.01, 2, 0.01);
+    this.register_param("trianglegain", 0.1, 0.0, 2.0, 0.01);
+    this.register_param("sinegain", 0.2, 0.0, 2.0, 0.01);
+
+    this.mastergain = ctx.createGain();
+
+    this.white_noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+    var b = this.white_noise.getChannelData(0);
+    for (var i = 0; i < b.length; i++) {
+      b[i] = Math.random() * 2 - 1;
+    }
+    this.filter = ctx.createBiquadFilter()
+    this.filter.type = "lowpass";
+    this.filter.frequency.value = this.params["filterfreq"].value;
+    this.filter.connect(this.mastergain)
+
+    this.adsrnoise = ctx.createGain();
+    this.adsrnoise.connect(this.filter);
+
+    this.osc1 = ctx.createOscillator();
+    this.osc2 = ctx.createOscillator();
+    this.osc1.type = "triangle";
+    this.osc2.type = "triangle";
+    this.osc1.frequency.value = this.params["osc1freq"].value;
+    this.osc2.frequency.value = this.params["osc2freq"].value;
+
+    this.osc1.start(0);
+    this.osc2.start(0);
+
+    this.osc3 = ctx.createOscillator();
+    this.osc4 = ctx.createOscillator();
+    this.osc3.type = "sine";
+    this.osc4.type = "sine";
+    this.osc3.frequency.value = this.params["osc3freq"].value;
+    this.osc4.frequency.value = this.params["osc4freq"].value;
+
+    this.osc3.start(0);
+    this.osc4.start(0);
+
+    this.adsrosc = ctx.createGain();
+    this.adsrosc.gain.value = 0;
+
+
+    this.trianglegain = ctx.createGain();
+    this.sinegain = ctx.createGain();
+
+    this.trianglegain.gain.value = this.params["trianglegain"].value;
+    this.sinegain.gain.value = this.params["sinegain"].value;
+
+    this.osc1.connect(this.trianglegain);
+    this.osc2.connect(this.trianglegain);
+    this.osc3.connect(this.sinegain);
+    this.osc4.connect(this.sinegain);
+
+    this.sinegain.connect(this.adsrosc);
+    this.trianglegain.connect(this.adsrosc);
+
+    this.adsrosc.connect(this.mastergain);
+  }
+
+  snare.prototype.trigger = function(velocity, time) {
+    var t = time || this.ctx.currentTime;
+    var v = velocity2gain(velocity);
+
+    var s = this.ctx.createBufferSource()
+    s.connect(this.adsrnoise);
+    s.buffer = this.white_noise;
+
+    this.adsrnoise.gain.setValueAtTime(0, t);
+    this.adsrnoise.gain.linearRampToValueAtTime(v * this.params["noisegain"].value, t + 0.01);
+    this.adsrnoise.gain.setTargetAtTime(0, t + 0.02, this.params["noisedecay"].value);
+
+    this.adsrosc.gain.setValueAtTime(0, t);
+    this.adsrosc.gain.linearRampToValueAtTime(v * this.params["oscgain"].value, t + 0.01);
+    this.adsrosc.gain.setTargetAtTime(0, t + 0.02, this.params["oscdecay"].value);
+
+    this.filter.frequency.setValueAtTime(this.params["filterfreq"].value, t);
+
+    this.sinegain.gain.setValueAtTime(this.params["sinegain"].value, t);
+    this.trianglegain.gain.setValueAtTime(this.params["trianglegain"].value, t);
+
+    this.osc1.frequency.setValueAtTime(this.params["osc1freq"].value, t);
+    this.osc2.frequency.setValueAtTime(this.params["osc2freq"].value, t);
+
+    s.start(time);
+  }
+
+  snare.prototype.name = function() {
+    return "snare";
+  }
+
+  snare.prototype.connect = function(node) {
+    this.mastergain.connect(node);
+  }
+
+  pad.prototype = extend(Instrument);
+
+  function pad(ctx) {
+    Instrument.call(this, ctx);
+
+    this.osc = ac.createOscillator();
+    this.osc.type = "sawtooth";
+    this.osc2 = ac.createOscillator();
+    this.osc2.type = "sawtooth";
+
+    this.lfo = ac.createOscillator();
+    this.lfogain = ac.createGain();
+    this.lfo.type = "sine";
+
+    this.lp = ac.createBiquadFilter();
+    this.lp.type = "lowpass";
+
+    var len = 2 * ac.sampleRate;
+    var decay = 5;
+    var buffer = ac.createBuffer(2, len, ac.sampleRate)
+    var iL = buffer.getChannelData(0)
+    var iR = buffer.getChannelData(1)
+    var decay = 10.0;
+    for(i=0,l=buffer.length;i<l;i++) {
+      iL[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+      iR[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    }
+
+    this.reverb = ac.createConvolver();
+    this.reverb.buffer = buffer;
+
+    this.lfo.connect(this.lfogain);
+    this.lfogain.connect(this.lp.frequency);
+    this.lfo.start();
+
+    this.gain = ac.createGain();
+    this.osc.connect(this.gain);
+    this.osc2.connect(this.gain);
+    this.gain.connect(this.lp);
+    this.lp.connect(this.reverb);
+
+    this.gain.gain.setValueAtTime(0.0, ac.currentTime);
+
+    this.osc.start(0);
+    this.osc2.start(0);
+
+    this.register_param2(this.osc2.detune, "osc-detune", 10, 0, 100, 1);
+    this.register_param2(this.lfogain.gain, "lfo-gain", 100, 0, 10000, 10);
+    this.register_param2(this.lfo.frequency, "lfo-speed-hz", 1, 0, 32, 1);
+    this.register_param2([this.osc.frequency, this.osc2.frequency], "osc-freq-hz", 400, 0, 20000, 1);
+    this.register_param2(this.lp.frequency, "lp-freq-hz", 1000, 0, 20000, 1);
+    this.register_param2(this.lp.gain, "lp-gain", 30, 0, 100, 1);
+    this.register_param2(this.lp.Q, "lp-q", 10, 0, 100, 1);
+    // need to redo the buffer, etc.
+    // this.register_param(reverb., "reverb-length", 2, 0, 10, 0.1);
+    // this.register_param(, "reverb-decay", 5, 0, 10, 0.1);
+    this.register_param("attack", 2, 0, 10, 0.1);
+    this.register_param("sustain", 0, 0, 10, 0.1);
+    this.register_param("lowfreq", 75, 1, 20000, 1);
+    this.register_param("highfreq", 3000, 1, 20000, 1);
+
+  }
+
+  pad.prototype.trigger = function(velocity, time) {
+    this.gain.gain.setValueAtTime(0.0, ac.currentTime);
+    this.gain.gain.linearRampToValueAtTime(1.0, ac.currentTime + this.params["attack"].value);
+    this.gain.gain.setTargetAtTime(0.0, ac.currentTime + this.params["attack"].value + this.params["sustain"].value, 1.0);
+    this.lp.frequency.setValueAtTime(this.params["lowfreq"].value, ac.currentTime);
+    this.lp.frequency.linearRampToValueAtTime(this.params["highfreq"].value, ac.currentTime + this.params["attack"].value);
+    this.lp.frequency.linearRampToValueAtTime(this.params["lowfreq"].value, ac.currentTime + this.params["attack"].value + this.params["sustain"].value + 2.0);
+  }
+
+  pad.prototype.name = function() {
+    return "pad";
+  }
+
+  pad.prototype.connect = function(node) {
+    this.reverb.connect(node);
+  }
+
+  function velocity2gain(velocity) {
+    return velocity / 127;
+  }
+
+  cvswidth = 256 * 3;
+
+  function getinst(ctx) {
+    var val = document.querySelector("#instrument").value;
+    switch (val) {
+      case "kick": var i = new kick(ctx); break;
+      case "snare": var i = new snare(ctx); break;
+      case "pad": var i = new pad(ctx); break;
+    }
+    return i;
+  }
+  var an = ac.createAnalyser();
+  an.connect(ac.destination);
+
+  function loadinst() {
+    // drop all listeners by cloning the node and discarding the old one
+    var el = document.getElementById('kick');
+    var cl = el.cloneNode(true);
+    el.parentNode.replaceChild(cl, el);
+
+    // delete all sliders
+    document.querySelector("#params").innerHTML = "";
+
+    var k = getinst(ac);
+    k.connect(an);
+
+    cl.addEventListener("click", function() {
+      k.trigger(80);
+    });
+    sliders(k);
+  }
+
+  loadinst();
+
+  function sliders(k, param) {
+    var params_wrapper = document.querySelector("#params");
+    var params = k.get_params();
+    var span = document.createElement("div");
+    span.innerHTML = k.name();
+    params_wrapper.appendChild(span);
+    for (var key in params) {
+      params_wrapper.appendChild(slider(k, key, params[key]));
+    }
+  }
+
+  function slider(k, key, param) {
+    var input = document.createElement("input");
+    input.type = "range";
+    var label = document.createElement("span");
+    label.innerHTML = key;
+    label.className = "label";
+    var value = document.createElement("span")
+    value.innerHTML = param.value;
+    value.className = "value";
+    var box = document.createElement("div");
+    box.appendChild(label);
+    box.appendChild(input);
+    box.appendChild(value);
+    input.min = param.min;
+    input.max = param.max;
+    input.step= param.step;
+    input.value = param.value;
+    input.addEventListener("input", function(e) {
+      k.set_param(key, e.target.value);
+      e.target.parentNode.querySelector(".value").innerHTML = e.target.value;
+      // bake();
+    });
+    return box;
+  }
+
+
+  // bake();
+
+  document.getElementById("render").addEventListener("click", bake);
+
+  function bake() {
+    var off;
+    try {
+      off = new OfflineaudioContext(1, 22050, 22050);
+    } catch(e) {
+      off = new webkitOfflineAudioContext(1, 22050, 44100);
+    }
+    var k2 = getinst(off);
+    k2.copy_params(k);
+    k2.trigger(128, 0.0);
+    k2.connect(off.destination);
+    off.oncomplete = function(e) {
+      var buf = e.renderedBuffer;
+      var cvs3 = document.getElementById("sample");
+      cvs3.width = buf.length;
+      cvs3.height = 256;
+      var s = cvs3.getContext("2d");
+      var b = buf.getChannelData(0);
+      s.fillStyle = "#000";
+      function rms(buf, offset, len) {
+        var rms = 0;
+        if (buf.length < offset + len) {
+          len = buf.length - offset;
+        }
+        if (len == 0) {
+          return 0;
+        }
+        for (var i = 0; i < len; i++) {
+          var v = buf[offset + i];
+          rms += Math.sqrt(v * v);
+        }
+        rms /= len;
+        return rms;
+      }
+      var end = 0;
+      for (var i = 0; i < cvs3.width; i++) {
+        if (Math.abs(b[i]) < 1.0) {
+          s.fillStyle = "rgba(255, 0, 0, 0.5)";
+        } else {
+          s.fillStyle = "rgba(0, 0, 255, 1.0)";
+        }
+        s.fillRect(i, 128, 1, b[i] * 128);
+        s.fillStyle = "rgba(0, 255, 0, 0.3)";
+        var rmsvalue = rms(b, i, 10);
+        s.fillRect(i, cvs3.height, 1, -rmsvalue * 128);
+        if (rmsvalue < 0.001 && end == 0) {
+          end = i;
+        }
+      }
+      var final = document.getElementById("final");
+      final.width = cvswidth;
+      final.height = 256;
+      var fc = final.getContext("2d");
+      fc.drawImage(cvs3, 0, 0, end, cvs3.height, 0, 0, 1000, cvs3.height);
+      final.onclick = function() {
+        source = ac.createBufferSource();
+        source.buffer = e.renderedBuffer;
+        source.connect(an);
+        source.start(0);
+      }
+      off = null;
+    }
+    off.startRendering();
+  }
+
+  var cvs = document.getElementById("scope");
+  cvs.width = cvswidth;
+  cvs.height = 256;
+  var c = cvs.getContext("2d");
+  c.fillStyle = "#000";
+
+  var cvs2 = document.getElementById("freq");
+  cvs2.width = cvswidth;
+  cvs2.height = 256;
+  var c2 = cvs2.getContext("2d");
+  c2.fillStyle = "#000";
+
+  var array = new Uint8Array(512);
+  var fft = new Float32Array(512);
+
+  an.frequencyBinCount = 256;
+
+  function render() {
+    c.clearRect(0, 0, cvs.width, cvs.height);
+    c2.clearRect(0, 0, cvs.width, cvs.height);
+    an.getByteTimeDomainData(array);
+    an.getFloatFrequencyData(fft);
+    for (var i = 0; i < array.length; i++) {
+      c.fillRect(i * 2, 128, 0.8, array[i] - 127);
+      c2.fillRect(i * 2, cvs2.height, 0.8, -((fft[i] + 100) / 70) * cvs2.height)
+    }
+    requestAnimationFrame(render);
+  }
+  requestAnimationFrame(render);
+}
+</script>
+<select id=instrument>
+  <option value=kick>kick</option>
+  <option value=snare>snare</option>
+  <option value=pad>pad</option>
+<select>
+<div id=left>
+  <button id=kick>kick</button>
+  <button id=render>render</button>
+  <canvas id=scope></canvas>
+  <canvas id=freq></canvas>
+  <canvas id=sample></canvas>
+  <canvas id=final></canvas>
+</div>
+<div id=params></div>
