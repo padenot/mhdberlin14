@@ -1,0 +1,313 @@
+<meta charset=utf-8>
+<style>
+canvas {
+  border: 1px solid gray;
+  display: block;
+  margin-bottom: 1em;
+}
+button {
+  border: 1px solid gray;
+  font-family: monospace;
+  display: block;
+}
+
+#sample {
+  display: none;
+}
+
+#params {
+  width: 30em;
+  font-family: monospace;
+  line-height: 2.1em;
+  //float: right;
+}
+
+
+#params div {
+  display: flex;
+}
+
+#params span {
+  flex: 1 1 5em;
+}
+
+#params input {
+  flex: 1 1 15em;
+}
+
+#params .label {
+  flex: 1 1 10em;
+}
+
+</style>
+<script>
+var k;
+
+function clamp(v, min, max) {
+  return Math.max(Math.min(v, max), min);
+}
+
+function extend(base) {
+  sub.prototype = base.prototype;
+  return new sub();
+}
+function sub() {}
+
+  try {
+    var ac = new AudioContext();
+  } catch(e) {
+    var ac = new webkitAudioContext();
+  }
+
+  function Instrument(ctx) {
+    this.params = {};
+    this.ctx = ctx;
+  }
+
+  Instrument.prototype.init = function(ctx) {
+    this.params = {}
+    this.ctx = ctx;
+  }
+
+  Instrument.prototype.get_params = function() {
+    return this.params;
+  }
+  Instrument.prototype.register_param = function(name, initial, min, max, step) {
+    this.params[name] = {};
+    this.params[name].value = initial;
+    this.params[name].min = min;
+    this.params[name].max = max;
+    this.params[name].step = step;
+  }
+  Instrument.prototype.register_param2 = function(audioparam, name, initial, min, max, step) {
+    this.register_param(name, initial, min, max, step);
+    this.params[name].audio_param = audioparam;
+  }
+
+  Instrument.prototype.set_param = function(key, val) {
+    var p = this.params[key];
+    p.value = clamp(val, p.min, p.max);
+    // if we find an audio param, set it
+    if (p.audio_param) {
+      // and if it's an array of audio param, set the ll
+      if (p.audio_param instanceof Array) {
+        p.audio_param.forEach(function(e) {
+          e.value = p.value;
+        });
+      } else {
+        p.audio_param.value = p.value;
+      }
+    }
+  }
+
+  Instrument.prototype.p = function(name) {
+    return this.params[name].value;
+  }
+
+  Instrument.prototype.copy_params = function(other) {
+    this.params = other.get_params();
+  }
+
+  Instrument.prototype.get_param = function(name) {
+    return this.params[name];
+  }
+
+  function velocity2gain(velocity) {
+    return velocity / 127;
+  }
+
+  cvswidth = 256 * 3;
+
+  function getinst(ctx) {
+    var val = document.querySelector("#instrument").value;
+    switch (val) {
+      case "kick": var i = new kick(ctx); break;
+      case "snare": var i = new snare(ctx); break;
+      case "pad": var i = new pad(ctx); break;
+    }
+    return i;
+  }
+  var an = ac.createAnalyser();
+  an.connect(ac.destination);
+
+  function loadinst() {
+    // drop all listeners by cloning the node and discarding the old one
+    var el = document.getElementById('kick');
+    var cl = el.cloneNode(true);
+    el.parentNode.replaceChild(cl, el);
+
+    // delete all sliders
+    document.querySelector("#params").innerHTML = "";
+
+    var k = getinst(ac);
+    k.connect(an);
+
+    cl.addEventListener("click", function() {
+      k.trigger.bind(k)(80);
+    });
+    sliders(k);
+  }
+
+  function sliders(k, param) {
+    var params_wrapper = document.querySelector("#params");
+    var params = k.get_params();
+    var span = document.createElement("div");
+    span.innerHTML = k.name();
+    params_wrapper.appendChild(span);
+    for (var key in params) {
+      params_wrapper.appendChild(slider(k, key, params[key]));
+    }
+  }
+
+  function slider(k, key, param) {
+    var input = document.createElement("input");
+    input.type = "range";
+    var label = document.createElement("span");
+    label.innerHTML = key;
+    label.className = "label";
+    var value = document.createElement("span")
+    value.innerHTML = param.value;
+    value.className = "value";
+    var box = document.createElement("div");
+    box.appendChild(label);
+    box.appendChild(input);
+    box.appendChild(value);
+    input.min = param.min;
+    input.max = param.max;
+    input.step= param.step;
+    input.value = param.value;
+    input.addEventListener("input", function(e) {
+      k.set_param(key, e.target.value);
+      e.target.parentNode.querySelector(".value").innerHTML = e.target.value;
+      // bake();
+    });
+    return box;
+  }
+
+
+
+window.onload = function() {
+
+  document.querySelector("#instrument").addEventListener("change", function(e) {
+    loadinst();
+  });
+
+  loadinst();
+
+  // bake();
+
+  document.getElementById("render").addEventListener("click", bake);
+
+  function bake() {
+    var off;
+    try {
+      off = new OfflineaudioContext(1, 22050, 22050);
+    } catch(e) {
+      off = new webkitOfflineAudioContext(1, 22050, 44100);
+    }
+    var k2 = getinst(off);
+    k2.copy_params(k);
+    k2.trigger(128, 0.0);
+    k2.connect(off.destination);
+    off.oncomplete = function(e) {
+      var buf = e.renderedBuffer;
+      var cvs3 = document.getElementById("sample");
+      cvs3.width = buf.length;
+      cvs3.height = 256;
+      var s = cvs3.getContext("2d");
+      var b = buf.getChannelData(0);
+      s.fillStyle = "#000";
+      function rms(buf, offset, len) {
+        var rms = 0;
+        if (buf.length < offset + len) {
+          len = buf.length - offset;
+        }
+        if (len == 0) {
+          return 0;
+        }
+        for (var i = 0; i < len; i++) {
+          var v = buf[offset + i];
+          rms += Math.sqrt(v * v);
+        }
+        rms /= len;
+        return rms;
+      }
+      var end = 0;
+      for (var i = 0; i < cvs3.width; i++) {
+        if (Math.abs(b[i]) < 1.0) {
+          s.fillStyle = "rgba(255, 0, 0, 0.5)";
+        } else {
+          s.fillStyle = "rgba(0, 0, 255, 1.0)";
+        }
+        s.fillRect(i, 128, 1, b[i] * 128);
+        s.fillStyle = "rgba(0, 255, 0, 0.3)";
+        var rmsvalue = rms(b, i, 10);
+        s.fillRect(i, cvs3.height, 1, -rmsvalue * 128);
+        if (rmsvalue < 0.001 && end == 0) {
+          end = i;
+        }
+      }
+      var final = document.getElementById("final");
+      final.width = cvswidth;
+      final.height = 256;
+      var fc = final.getContext("2d");
+      fc.drawImage(cvs3, 0, 0, end, cvs3.height, 0, 0, 1000, cvs3.height);
+      final.onclick = function() {
+        source = ac.createBufferSource();
+        source.buffer = e.renderedBuffer;
+        source.connect(an);
+        source.start(0);
+      }
+      off = null;
+    }
+    off.startRendering();
+  }
+
+  var cvs = document.getElementById("scope");
+  cvs.width = cvswidth;
+  cvs.height = 256;
+  var c = cvs.getContext("2d");
+  c.fillStyle = "#000";
+
+  var cvs2 = document.getElementById("freq");
+  cvs2.width = cvswidth;
+  cvs2.height = 256;
+  var c2 = cvs2.getContext("2d");
+  c2.fillStyle = "#000";
+
+  var array = new Uint8Array(512);
+  var fft = new Float32Array(512);
+
+  an.frequencyBinCount = 256;
+
+  function render() {
+    c.clearRect(0, 0, cvs.width, cvs.height);
+    c2.clearRect(0, 0, cvs.width, cvs.height);
+    an.getByteTimeDomainData(array);
+    an.getFloatFrequencyData(fft);
+    for (var i = 0; i < array.length; i++) {
+      c.fillRect(i * 2, 128, 0.8, array[i] - 127);
+      c2.fillRect(i * 2, cvs2.height, 0.8, -((fft[i] + 100) / 70) * cvs2.height)
+    }
+    requestAnimationFrame(render);
+  }
+  requestAnimationFrame(render);
+}
+</script>
+<script src=pad.js></script>
+<script src=kick.js></script>
+<script src=snare.js></script>
+<select id=instrument>
+  <option value=kick>kick</option>
+  <option value=snare>snare</option>
+  <option value=pad>pad</option>
+<select>
+<div id=left>
+  <button id=kick>kick</button>
+  <button id=render>render</button>
+  <canvas id=scope></canvas>
+  <canvas id=freq></canvas>
+  <canvas id=sample></canvas>
+  <canvas id=final></canvas>
+</div>
+<div id=params></div>
