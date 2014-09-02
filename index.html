@@ -148,6 +148,8 @@ channel.prototype.buttons = function(node) {
   node.appendChild(trig);
 }
 
+var two_scopes = false;
+
 channel.prototype.scopes = function(k, node) {
   this.scope = document.createElement("canvas");
   //square
@@ -157,12 +159,14 @@ channel.prototype.scopes = function(k, node) {
   this.c_scope = this.scope.getContext("2d");
   this.c_scope.fillStyle = "#000";
 
-  this.freq = document.createElement("canvas");
-  this.freq.width = channel_width;
-  this.freq.height = channel_width / 2;
-  node.appendChild(this.freq);
-  this.c_freq = this.freq.getContext("2d");
-  this.c_freq.fillStyle = "#000";
+  if (two_scopes) {
+    this.freq = document.createElement("canvas");
+    this.freq.width = channel_width;
+    this.freq.height = channel_width / 2;
+    node.appendChild(this.freq);
+    this.c_freq = this.freq.getContext("2d");
+    this.c_freq.fillStyle = "#000";
+  }
 
   this.array = new Uint8Array(512);
   this.fft = new Float32Array(512);
@@ -173,15 +177,22 @@ channel.prototype.scopes = function(k, node) {
   this.countcount = 0;
   function render() {
     self.c_scope.clearRect(0, 0, self.scope.width, self.scope.height);
-    self.c_freq.clearRect(0, 0, self.freq.width, self.freq.height);
+    if (two_scopes) {
+      self.c_freq.clearRect(0, 0, self.freq.width, self.freq.height);
+    }
     self.an.getByteTimeDomainData(self.array);
     self.an.getFloatFrequencyData(self.fft);
     var rms = 0;
     for (var i = 0; i < self.array.length; i++) {
       var norm = (self.array[i] - 128) / 256;
       rms += norm * norm;
-      self.c_scope.fillRect(i * 2, self.freq.height / 2, 0.8, self.array[i] - 127);
-      self.c_freq.fillRect(i * 2, self.freq.height, 0.8, -((self.fft[i] + 100) / 70) * self.freq.height)
+      self.c_scope.fillRect(i * 2, self.scope.height / 2, 0.8, self.array[i] - 127);
+      if (two_scopes) {
+        self.c_freq.fillRect(i * 2, self.freq.height, 0.8, -((self.fft[i] + 100) / 70) * self.freq.height)
+      } else {
+        self.c_scope.fillRect(i * 2, self.scope.height, 0.8, -((self.fft[i] +
+                100) / 70) * self.scope.height)
+      }
     }
     rms = Math.sqrt(rms / self.array.length);
     console.log(rms)
