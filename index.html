@@ -117,9 +117,6 @@ function velocity2gain(velocity) {
 var channel_width = 350;
 var channels = [];
 
-var an = ac.createAnalyser();
-an.connect(ac.destination);
-
 function channel(inst) {
   this.an = ac.createAnalyser();
   this.an.frequencyBinCount = channel_width / 2;
@@ -170,8 +167,6 @@ channel.prototype.scopes = function(k, node) {
 
   this.array = new Uint8Array(512);
   this.fft = new Float32Array(512);
-
-  an.frequencyBinCount = 256;
 
   var self = this;
   this.countcount = 0;
