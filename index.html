@@ -70,7 +70,7 @@ return Math.pow(2, (n - 69) / 12) * 440;
 var channel_width = 350;
 var channels = [];
 
-var len = ac.sampleRate * 5;
+var len = ac.sampleRate * 3;
 var buffer = ac.createBuffer(2, len, ac.sampleRate)
 var iL = buffer.getChannelData(0)
 var iR = buffer.getChannelData(1)
@@ -79,9 +79,9 @@ iL[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
 iR[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
 }
 
-// var verb = ac.createConvolver();
-// verb.buffer = buffer;
-// verb.connect(ac.destination);
+var verb = ac.createConvolver();
+verb.buffer = buffer;
+verb.connect(ac.destination);
 
 function channel(inst, sink) {
 this.an = ac.createAnalyser();
