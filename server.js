@@ -7,22 +7,6 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(value, max));
 }
 
-var instrumentsColCount = 2;
-var instruments = [];
-for(var i = 0; i < instrumentsColCount * 7; ++i) {
-  instruments.push(false);
-}
-
-function playInstruments(instrumentsArray, height, duration) {
-  var i;
-
-  for (i = 0; i < instrumentsArray.length; ++i) {
-    if (instrumentsArray[i]) {
-      WS.sendPlay(i, clamp(height, 0, 1), clamp(duration, 0, 1));
-    }
-  }
-}
-
 // MONOME
 require('monode')().on('connect', function(device) {
   console.log('monome status: ONLINE');
@@ -32,18 +16,8 @@ require('monode')().on('connect', function(device) {
       return;
     }
 
-    // instrument selection
-    if (x < instrumentsColCount) {
-      console.log('set instrument', y + (x * 8));
-      instruments[y + (x * 8)] = !instruments[y + (x * 8)];
-      updateInstrumentsLeds();
-    }
-    else if (x >= instrumentsColCount) {
-      // map height on the X axis and duration on Y axis.
-      var height = (x - instrumentsColCount) / (15 - instrumentsColCount);
-      var duration = (y / 7);
-      playInstruments(instruments, height, duration);
-    }
+    var duration = x / 15;
+    WS.sendPlay(y, -1, duration);
   });
 
   function updateInstrumentsLeds() {
@@ -68,6 +42,7 @@ if (count > 1) {
 }
 
 input.on('message', function(deltaTime, message) {
+  if (message[0] == 128) return;
   console.log('midi message', message);
   var octave = Math.floor(message[1]/24);
   WS.sendPlay(100 + octave, (message[1] - octave * 24) / 23, message[2] / 127);

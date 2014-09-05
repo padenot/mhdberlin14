@@ -97,3 +97,41 @@ kick.prototype.trigger = function(note, velocity, time) {
 kick.prototype.name = function() {
   return "kick";
 }
+
+
+kickb.prototype = extend(Instrument);
+
+function kickb(ctx) {
+  Instrument.call(this, ctx);
+  var off = new OfflineAudioContext(1, ac.sampleRate * 2, ac.sampleRate);
+  var k = new kick(off);
+  k.connect(off.destination);
+  k.trigger(32, 90);
+  var self = this;
+  off.oncomplete = function(e) {
+    self.buffer = e.renderedBuffer;
+  }
+  off.startRendering();
+  this.sink = [];
+}
+
+kickb.prototype.connect = function(node) {
+  this.sink.push(node);
+}
+
+kickb.prototype.trigger = function(note, velocity, time) {
+  var t = time || this.ctx.currentTime;
+  var v = velocity2gain(velocity);
+
+  var s = ac.createBufferSource();
+  s.buffer = this.buffer;
+  for (var i = 0; i < this.sink.length; i++) {
+    s.connect(this.sink[i]);
+  }
+  s.start(0)
+}
+
+kickb.prototype.name = function() {
+  return "kickb";
+}
+
