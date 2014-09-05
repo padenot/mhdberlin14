@@ -23,17 +23,50 @@ function geom_init() {
     });
 
     gfx.geometries.param_buffers = [];
+    var id = 0;
     gfx.geometries.param_buffers.push(
-        create_param_line_geom(0),
-        create_param_line_geom(1),
-        create_param_line_geom(2),
-        create_param_line_geom(3)
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++)
     );
 }
 
 
 
-var PARAM_MAX = 10;
+var PARAM_MAX = 20;
 function create_param_line_geom(id) {
     var positions = [];
     var y0 = 0.0;
