@@ -23,7 +23,10 @@ function createServerTaChatte(httpserver) {
   });
 
   wsServer.sendPlay = function(instID, height, duration) {
+    console.log('send play message', instID, height, duration);
+
     if (!conn) {
+      console.log('but no-one is listening :(');
       return;
     }
 
