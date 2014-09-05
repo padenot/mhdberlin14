@@ -59,66 +59,12 @@ function extend(base) {
 }
 function sub() {}
 
-function Instrument(ctx) {
-  this.params = {};
-  this.ctx = ctx;
-}
-
-Instrument.prototype.init = function(ctx) {
-  this.params = {}
-  this.ctx = ctx;
-}
-
-Instrument.prototype.get_params = function() {
-  return this.params;
-}
-Instrument.prototype.register_param = function(name, initial, min, max, step) {
-  this.params[name] = {};
-  this.params[name].value = initial;
-  this.params[name].min = min;
-  this.params[name].max = max;
-  this.params[name].step = step;
-}
-Instrument.prototype.register_param2 = function(audioparam, name, initial, min, max, step) {
-  this.register_param(name, initial, min, max, step);
-  this.params[name].audio_param = audioparam;
-}
-
-Instrument.prototype.set_param = function(key, val) {
-  var p = this.params[key];
-  p.value = clamp(val, p.min, p.max);
-  if (p.audio_param) {
-    if (p.audio_param instanceof Array) {
-      p.audio_param.forEach(function(e) {
-        e.value = p.value;
-      });
-    } else {
-      p.audio_param.value = p.value;
-    }
-  }
-}
-
-Instrument.prototype.copy_params = function(other) {
-  this.params = other.get_params();
-}
-
-Instrument.prototype.get_param = function(name) {
-  return this.params[name];
-}
-
-Instrument.prototype.p = function(name) {
-  return this.params[name].value
-}
-
 function velocity2gain(velocity) {
   return velocity / 127;
 }
 
 var channel_width = 350;
 var channels = [];
-
-var an = ac.createAnalyser();
-an.connect(ac.destination);
 
 function channel(inst) {
   this.an = ac.createAnalyser();
@@ -170,8 +116,6 @@ channel.prototype.scopes = function(k, node) {
 
   this.array = new Uint8Array(512);
   this.fft = new Float32Array(512);
-
-  an.frequencyBinCount = 256;
 
   var self = this;
   this.countcount = 0;
@@ -247,6 +191,7 @@ window.onload = function() {
   channels.push(new channel(new pad(ac)));
 }
 </script>
+<script src=instrument.js></script>
 <script src=kick.js></script>
 <script src=pad.js></script>
 <script src=snare.js></script>
