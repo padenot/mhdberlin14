@@ -1,10 +1,15 @@
+// YOUPI LE HTTP
+var http = require('./httpserveryoupi.js');
+// WEBSOCKET SERVEUR SISI
+var WS = require('./websockettachatte.js')(http);
+
+// MONOME
 var instrumentsColCount = 2;
 var instruments = [];
 for(var i = 0; i < instrumentsColCount * 7; ++i) {
   instruments.push(false);
 }
 
-// MONOME
 require('monode')().on('connect', function(device) {
   console.log('monome status: ONLINE');
 
