@@ -203,22 +203,23 @@ channel.prototype.sliders = function(k, node) {
 
 var channels = {};
 window.onload = function() {
-  channels.kick = new channel(new kick(ac), ac.destination);
-  channels.snare = new channel(new snare(ac), ac.destination);
-  // channels.push(new channel(new sub(ac), ac.destination));
-  channels.vessels = new channel(new vessels(ac), ac.destination);
-  channels.pad = new channel(new pad(ac), ac.destination);
-  channels.bell = new channel(new bell(ac), verb);
-  channels.wind = new channel(new wind(ac), ac.destination);
+  var channels = [];
+  channels.push(new channel(new kickb(ac), ac.destination));
+  channels.push(new channel(new snareb(ac), ac.destination));
+  channels.push(new channel(new subsub(ac), ac.destination));
+  channels.push(new channel(new vessels(ac), ac.destination));
+  channels.push(new channel(new pad(ac), ac.destination));
+  channels.push(new channel(new bell(ac), ac.destination));
+  channels.push(new channel(new wind(ac), ac.destination));
 }
 </script>
 <script src=instrument.js></script>
 <script src=kick.js></script>
+<script src=sub.js></script>
 <script src=pad.js></script>
 <script src=snare.js></script>
 <script src=bell.js></script>
 <script src=wind.js></script>
-<script src=sub.js></script>
 <script src=vessels.js></script>
 <script src=app.js></script>
 <div id=params></div>
