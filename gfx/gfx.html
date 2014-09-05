@@ -1,0 +1,54 @@
+<html>
+  <head>
+    <title>Music hack days :)</title>
+    <script src="gfx.js"></script>
+    <script src="scenes.js"></script>
+    <script src="geom.js"></script>
+    <script src="gl-matrix.js"></script>
+    <style>
+      .container {
+        background-color: gray;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+
+  <script id="uv-vs" type="x-shader/x-vertex">
+    varying vec2 v_uv;
+    void main() {
+      gl_Position = u_vp_mat * vec4(a_position, 1.0);
+      v_uv = a_uv;
+    }
+  </script>
+  <script id="uv-fs" type="x-shader/x-fragment">
+    varying vec2 v_uv;
+    void main() {
+      gl_FragColor = vec4(v_uv, 0.0, 1.0);
+    }
+  </script>
+
+
+  <script id="lines1-vs" type="x-shader/x-vertex">
+    varying vec2 v_uv;
+    void main() {
+      vec4 pos = vec4(a_position, 1.0);
+      v_uv = vec2(a_param_buf, pos.y);
+      pos.y = (pos.y + pos.z*2.0 + a_param_buf * (pos.z + 0.5)) / 10.0;
+      pos.z = 0.0;
+      gl_Position = pos;
+    }
+  </script>
+  <script id="lines1-fs" type="x-shader/x-fragment">
+    varying vec2 v_uv;
+    void main() {
+      gl_FragColor = vec4(v_uv, 0.0, 1.0);
+    }
+  </script>
+
+  </head>
+  <body style = "margin:0;" onload="on_load()">
+    <div class="container">
+      <canvas id="canvas" style="width: 100%; height: 100%; border: solid black 1px;"></canvas>
+    </div>
+  </body>
+</html>
