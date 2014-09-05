@@ -71,7 +71,7 @@ function snare(ctx) {
   this.adsrosc.connect(this.mastergain);
 }
 
-snare.prototype.trigger = function(velocity, time) {
+snare.prototype.trigger = function(note, velocity, time) {
   var t = time || this.ctx.currentTime;
   var v = velocity2gain(velocity);
 

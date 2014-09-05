@@ -63,10 +63,27 @@ function velocity2gain(velocity) {
   return velocity / 127;
 }
 
+function n2f(n) {
+  return Math.pow(2, (n - 69) / 12) * 440;
+}
+
 var channel_width = 350;
 var channels = [];
 
-function channel(inst) {
+var len = ac.sampleRate * 5;
+var buffer = ac.createBuffer(2, len, ac.sampleRate)
+var iL = buffer.getChannelData(0)
+var iR = buffer.getChannelData(1)
+for(i=0,l=buffer.length;i<l;i++) {
+  iL[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+  iR[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+}
+
+var verb = ac.createConvolver();
+verb.buffer = buffer;
+verb.connect(ac.destination);
+
+function channel(inst, sink) {
   this.an = ac.createAnalyser();
   this.an.frequencyBinCount = channel_width / 2;
   this.inst = inst;
@@ -81,7 +98,7 @@ function channel(inst) {
   this.scopes(this.an, this.root_node);
 
   inst.connect(this.an);
-  this.an.connect(ac.destination);
+  inst.connect(sink);
 }
 
 channel.prototype.buttons = function(node) {
@@ -89,7 +106,7 @@ channel.prototype.buttons = function(node) {
   trig.innerHTML = "trigger";
   var self = this;
   trig.addEventListener("click", function() {
-    self.inst.trigger(128);
+    self.inst.trigger(90, 90);
   });
   node.appendChild(trig);
 }
@@ -139,9 +156,9 @@ channel.prototype.scopes = function(k, node) {
       }
     }
     rms = Math.sqrt(rms / self.array.length);
-    console.log(rms)
+    // console.log(rms)
     if (!(this.countcount % 10)) {
-      self.root_node.style.filter = "blur(" + rms * 50 + "px)";
+      // self.root_node.style.filter = "blur(" + rms * 50 + "px)";
     }
     requestAnimationFrame(render);
   }
@@ -186,13 +203,17 @@ channel.prototype.sliders = function(k, node) {
 
 window.onload = function() {
   var channels = [];
-  channels.push(new channel(new kick(ac)));
-  channels.push(new channel(new snare(ac)));
-  channels.push(new channel(new pad(ac)));
+  channels.push(new channel(new kick(ac), ac.destination));
+  channels.push(new channel(new snare(ac), ac.destination));
+   channels.push(new channel(new pad(ac), verb));
+   channels.push(new channel(new bell(ac), verb));
+  channels.push(new channel(new wind(ac), verb));
 }
 </script>
 <script src=instrument.js></script>
 <script src=kick.js></script>
 <script src=pad.js></script>
 <script src=snare.js></script>
+<script src=bell.js></script>
+<script src=wind.js></script>
 <div id=params></div>
