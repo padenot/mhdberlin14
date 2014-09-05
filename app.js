@@ -20,6 +20,17 @@ connection.onmessage = function(message) {
   console.log(payload);
 
   if (payload.instrument < 100) { // MONOME OUI OUI
+    switch(payload.instrument) {
+    case 0:
+      channels.kick.inst.trigger(-1, payload.duration * 9000, 0);
+      break;
+    case 1:
+      channels.snare.inst.trigger(-1, payload.duration * 9000, 0);
+      break;
+    case 2:
+      channels.pad.inst.trigger(-1, payload.duration * 9000, 0);
+      break;
+    }
   }
   else { // NANOKEY OH YEAH
     channels.bell.inst.trigger(72 + payload.height * 23, payload.duration * 50);
