@@ -69,6 +69,7 @@ if (count > 1) {
 
 input.on('message', function(deltaTime, message) {
   console.log('midi message', message);
-  WS.sendPlay(100 + Math.floor(message[1]/12), message[1] / 120, message[2] / 127);
+  var octave = Math.floor(message[1]/24);
+  WS.sendPlay(100 + octave, (message[1] - octave * 24) / 23, message[2] / 127);
 });
 input.ignoreTypes(false, false, false);
