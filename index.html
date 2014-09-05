@@ -203,14 +203,13 @@ channel.prototype.sliders = function(k, node) {
 
 var channels = {};
 window.onload = function() {
-  var channels = [];
-  channels.push(new channel(new kickb(ac), ac.destination));
-  channels.push(new channel(new snareb(ac), ac.destination));
-  channels.push(new channel(new subsub(ac), ac.destination));
-  channels.push(new channel(new vessels(ac), ac.destination));
-  channels.push(new channel(new pad(ac), ac.destination));
-  channels.push(new channel(new bell(ac), ac.destination));
-  channels.push(new channel(new wind(ac), ac.destination));
+  channels.kick = new channel(new kickb(ac), ac.destination);
+  channels.snare = new channel(new snareb(ac), ac.destination);
+  channels.sub = new channel(new subsub(ac), ac.destination);
+  channels.vessels = new channel(new vessels(ac), ac.destination);
+  channels.pad = new channel(new pad(ac), ac.destination);
+  channels.bell = new channel(new bell(ac), ac.destination);
+  channels.wind = new channel(new wind(ac), ac.destination);
 }
 </script>
 <script src=instrument.js></script>
