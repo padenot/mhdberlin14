@@ -90,8 +90,8 @@ Instrument.prototype.set_param = function(key, val) {
   if (p.audio_param) {
     if (p.audio_param instanceof Array) {
       p.audio_param.forEach(function(e) {
-          e.value = p.value;
-          });
+        e.value = p.value;
+      });
     } else {
       p.audio_param.value = p.value;
     }
@@ -196,7 +196,7 @@ channel.prototype.scopes = function(k, node) {
     }
     rms = Math.sqrt(rms / self.array.length);
     console.log(rms)
-    if (!(this.countcount % 100)) {
+    if (!(this.countcount % 10)) {
       self.root_node.style.filter = "blur(" + rms * 50 + "px)";
     }
     requestAnimationFrame(render);
