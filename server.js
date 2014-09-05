@@ -42,6 +42,7 @@ if (count > 1) {
 }
 
 input.on('message', function(deltaTime, message) {
+  if (message[0] == 128) return;
   console.log('midi message', message);
   var octave = Math.floor(message[1]/24);
   WS.sendPlay(100 + octave, (message[1] - octave * 24) / 23, message[2] / 127);

@@ -70,7 +70,7 @@ return Math.pow(2, (n - 69) / 12) * 440;
 var channel_width = 350;
 var channels = [];
 
-var len = ac.sampleRate * 5;
+var len = ac.sampleRate * 3;
 var buffer = ac.createBuffer(2, len, ac.sampleRate)
 var iL = buffer.getChannelData(0)
 var iR = buffer.getChannelData(1)
@@ -79,9 +79,9 @@ iL[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
 iR[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
 }
 
-// var verb = ac.createConvolver();
-// verb.buffer = buffer;
-// verb.connect(ac.destination);
+var verb = ac.createConvolver();
+verb.buffer = buffer;
+verb.connect(ac.destination);
 
 function channel(inst, sink) {
 this.an = ac.createAnalyser();
@@ -203,22 +203,13 @@ channel.prototype.sliders = function(k, node) {
 
 var channels = {};
 window.onload = function() {
-<<<<<<< HEAD
-  var channels = [];
-  channels.push(new channel(new kick(ac), ac.destination));
-  channels.push(new channel(new snare(ac), ac.destination));
-  // channels.push(new channel(new sub(ac), ac.destination));
-  channels.push(new channel(new vessels(ac), ac.destination));
-  channels.push(new channel(new pad(ac), ac.destination));
-  channels.push(new channel(new bell(ac), ac.destination));
-  channels.push(new channel(new wind(ac), ac.destination));
-=======
   channels.kick = new channel(new kick(ac), ac.destination);
   channels.snare = new channel(new snare(ac), ac.destination);
-  channels.pad = new channel(new pad(ac), verb);
+  // channels.push(new channel(new sub(ac), ac.destination));
+  channels.vessels = new channel(new vessels(ac), ac.destination);
+  channels.pad = new channel(new pad(ac), ac.destination);
   channels.bell = new channel(new bell(ac), verb);
-  channels.wind = new channel(new wind(ac), verb);
->>>>>>> d45f00d6903cdca141b741c6d18146822aa52579
+  channels.wind = new channel(new wind(ac), ac.destination);
 }
 </script>
 <script src=instrument.js></script>
@@ -227,10 +218,7 @@ window.onload = function() {
 <script src=snare.js></script>
 <script src=bell.js></script>
 <script src=wind.js></script>
-<<<<<<< HEAD
 <script src=sub.js></script>
 <script src=vessels.js></script>
-=======
 <script src=app.js></script>
->>>>>>> d45f00d6903cdca141b741c6d18146822aa52579
 <div id=params></div>
