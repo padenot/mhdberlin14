@@ -131,6 +131,7 @@ snareb.prototype.trigger = function(note, velocity, time) {
 
   var s = ac.createBufferSource();
   s.buffer = this.buffer;
+  s.playbackRate.value = 1 + (note - 50) / 100;
   for (var i = 0; i < this.sink.length; i++) {
     s.connect(this.sink[i]);
   }
