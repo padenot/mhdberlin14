@@ -6,7 +6,7 @@ function polyteeth(ctx) {
   this.register_param("decay", 0.2, 0.01, 0.5, 0.01);
   this.register_param("freq0", 440, 220, 880, 1);
   this.register_param("ATK", 0.2, 0.05, 5, 0.1);
-  this.register_param("subteeth", 0.2, 0, 0.01);
+  this.register_param("subteeth", 0.2, 0, 1, 0.01);
 
   this.polyteeth2 = ctx.createOscillator();
   this.polyteeth2.type = "sawtooth";
@@ -48,7 +48,7 @@ polyteeth.prototype.trigger = function(velocity, time) {
   this.polyteeth3.frequency.value = this.p("freq0")*Math.pow(2,0.25);
   this.polyteeth1.frequency.value = this.p("freq0")/Math.pow(2,0.25);
 
-  this.subteeth.gain.setValueAtTime = this.p("subteeth");
+  this.subteeth.gain.setValueAtTime = (t,this.p("subteeth"));
   
   this.polyteethGain.gain.cancelScheduledValues(t);
   this.polyteethGain.gain.setValueAtTime(0, t);
