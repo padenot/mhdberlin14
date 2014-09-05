@@ -28,13 +28,31 @@
   </script>
 
 
+  <script id="background-fs" type="x-shader/x-fragment">
+    varying vec2 v_uv;
+    void main() {
+      gl_FragColor = vec4(0.0, 0.15* v_uv.y, 0.3 * v_uv.y, 1.0);
+    }
+  </script>
+
+
   <script id="lines1-vs" type="x-shader/x-vertex">
     varying vec2 v_uv;
     void main() {
-      vec4 pos = vec4(a_position, 1.0);
-      v_uv = vec2(a_param_buf, pos.y);
-      pos.y = (pos.y + pos.z*2.0 + a_param_buf * (pos.z + 0.5)) / 10.0;
-      pos.z = 0.0;
+      float line_id = a_position.z;
+      float radius = 1.5 * a_position.x
+                   + (1.2 + sin(20.0*(line_id / u_num_params))) * u_float_param_0;
+      float angle = (0.3 * a_position.y + a_param_buf) / 10.0;
+
+      v_uv = vec2(abs(a_param_buf), abs(angle));
+
+      vec4 pos = vec4(
+        radius * cos(2.0*PI * (angle / u_num_params + line_id/(u_num_params))),
+        radius * sin(2.0*PI * (angle / u_num_params + line_id/(u_num_params))),
+        a_position.x,
+        1.0
+      );
+
       gl_Position = pos;
     }
   </script>

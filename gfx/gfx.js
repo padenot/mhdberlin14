@@ -28,6 +28,11 @@ var gfx = {
     "u_texture_3",
     "u_texture_4",
     "u_clip_time",
+    "u_num_params",
+    "u_float_param_0",
+    "u_float_param_1",
+    "u_float_param_2",
+    "u_float_param_3",
   ],
   scenes: {},
   current_scene: null
@@ -43,6 +48,7 @@ function on_load() {
 
   gfx.programs.uv = load_shader_program("uv-vs", "uv-fs");
   gfx.programs.lines1 = load_shader_program("lines1-vs", "lines1-fs");
+  gfx.programs.background = load_shader_program("uv-vs", "background-fs");
 
   geom_init();
 
@@ -56,9 +62,13 @@ function on_load() {
 }
 
 function gl_init() {
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
   gl = canvas.getContext("webgl");
 
+
   gl.viewport(0, 0, canvas.width, canvas.height);
+  console.log("width: " + canvas.width + " height: "+ canvas.height);
 
   var buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -186,14 +196,20 @@ var shader_prelude = "precision lowp float;\n"
                    + "uniform sampler2D u_texture_3;\n"
                    + "uniform sampler2D u_texture_4;\n"
                    + "uniform float u_clip_time;\n"
-                   + "//11\n"
+                   + "uniform float u_num_params;\n"
+                   + "uniform float u_float_param_0;\n"
+                   + "uniform float u_float_param_1;\n"
+                   + "uniform float u_float_param_2;\n"
+                   + "uniform float u_float_param_3;\n"
+                   + "#define PI 3.1415926535897932384626433832795\n"
+                   + "//17\n"
 
 var vs_prelude = "attribute vec3 a_position;\n"
                + "attribute vec3 a_normal;\n"
                + "attribute vec3 a_color;\n"
                + "attribute vec2 a_uv;\n"
                + "attribute float a_param_buf;\n"
-               + "//17\n"
+               + "//23\n"
 
 // Taken from MDN
 function get_shader(id) {
@@ -337,6 +353,9 @@ function set_fallback_uniforms() {
   if (!gfx.uniforms.u_clip_time) {
     gfx.uniforms.u_clip_time = 0;
   }
+  if (!gfx.uniforms.u_num_params) {
+    gfx.uniforms.u_num_params = gfx.geometries.param_buffers.length;
+  }
 }
 
 function send_uniforms(program) {
@@ -450,6 +469,7 @@ function check_nan(array) {
   for (i=0; i<array.length; ++i) {
     if (array[i] != array[i]) {
       alert("NaN in a vertex buffer!");
+      debugger;
     }
   }
 }
