@@ -23,6 +23,13 @@ Instrument.prototype.register_param = function(name, initial, min, max, step) {
 Instrument.prototype.register_param2 = function(audioparam, name, initial, min, max, step) {
   this.register_param(name, initial, min, max, step);
   this.params[name].audio_param = audioparam;
+  if (this.params[name].audio_param instanceof Array) {
+    this.params[name].audio_param.forEach(function(e) {
+      e.setValueAtTime(initial, ac.currentTime);
+    });
+  } else {
+    this.params[name].audio_param.setValueAtTime(initial, ac.currentTime);
+  }
 };
 
 Instrument.prototype.set_param = function(key, val) {
@@ -31,10 +38,10 @@ Instrument.prototype.set_param = function(key, val) {
   if (p.audio_param) {
     if (p.audio_param instanceof Array) {
       p.audio_param.forEach(function(e) {
-          e.value = p.value;
+          e.setValueAtTime(p.value, ac.currentTime);
           });
     } else {
-      p.audio_param.value = p.value;
+      p.audio_param.setValueAtTime(p.value, ac.currentTime);
     }
   }
 };
