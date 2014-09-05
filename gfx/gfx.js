@@ -46,10 +46,6 @@ function on_load() {
   canvas = document.getElementById("canvas");
   gl_init();
 
-  gfx.programs.uv = load_shader_program("uv-vs", "uv-fs");
-  gfx.programs.lines1 = load_shader_program("lines1-vs", "lines1-fs");
-  gfx.programs.background = load_shader_program("uv-vs", "background-fs");
-
   geom_init();
 
   scenes_init();
@@ -190,6 +186,7 @@ var shader_prelude = "precision lowp float;\n"
                    + "uniform mat4 u_vp_mat;\n"
                    + "uniform mat4 u_vp_mat_inv;\n"
                    + "uniform vec2 u_resolution;\n"
+                   + "uniform vec2 u_cam_pos;\n"
                    + "uniform sampler2D u_texture_0;\n"
                    + "uniform sampler2D u_texture_1;\n"
                    + "uniform sampler2D u_texture_2;\n"
@@ -202,14 +199,14 @@ var shader_prelude = "precision lowp float;\n"
                    + "uniform float u_float_param_2;\n"
                    + "uniform float u_float_param_3;\n"
                    + "#define PI 3.1415926535897932384626433832795\n"
-                   + "//17\n"
+                   + "//18\n"
 
 var vs_prelude = "attribute vec3 a_position;\n"
                + "attribute vec3 a_normal;\n"
                + "attribute vec3 a_color;\n"
                + "attribute vec2 a_uv;\n"
                + "attribute float a_param_buf;\n"
-               + "//23\n"
+               + "//24\n"
 
 // Taken from MDN
 function get_shader(id) {
@@ -349,6 +346,9 @@ function set_fallback_uniforms() {
   }
   if (!gfx.uniforms.u_resolution) {
     gfx.uniforms.u_resolution = [canvas.width, canvas.height];
+  }
+  if (!gfx.uniforms.u_cam_pos) {
+    gfx.uniforms.u_cam_pos = [0, 0];
   }
   if (!gfx.uniforms.u_clip_time) {
     gfx.uniforms.u_clip_time = 0;
