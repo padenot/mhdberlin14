@@ -214,6 +214,7 @@ window.onload = function() {
   channels.glock = new channel(new glock(ac), ac.destination);
   channels.polyteeth = new channel(new polyteeth(ac), ac.destination);
   channels.batt_sin = new channel(new batt_sin(ac), ac.destination);
+  channels.organ = new channel(new organ(ac), ac.destination);
   channels.wind = new channel(new wind(ac), ac.destination);
   init_maps_params();
 }
@@ -229,5 +230,6 @@ window.onload = function() {
 <script src=glock.js></script>
 <script src=polyteeth.js></script>
 <script src=batt_sin.js></script>
+<script src=organ.js></script>
 <script src=app.js></script>
 <div id=params></div>
