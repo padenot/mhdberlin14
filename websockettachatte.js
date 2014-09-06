@@ -42,32 +42,35 @@ function createServerTaChatte(httpserver) {
       duration: duration}));
   };
 
+  var WebSocketClient = require('websocket').client;
+  var AMSTERDAMConnection;
+  var client = new WebSocketClient();
+  client.on('connectFailed', function(error) {
+      console.log('Connect Error: ' + error.toString());
+  });
+
+  client.on('connect', function(connection) {
+      AMSTERDAMConnection = connection;
+      console.log('WebSocket client connected');
+      connection.on('error', function(error) {
+          console.log("Connection Error: " + error.toString());
+      });
+      connection.on('close', function() {
+          console.log('Connection Closed');
+      });
+      connection.on('message', function(message) {
+        if (conn) {
+          console.log(message);
+          conn.send(message.utf8Data);
+        }
+      });
+  });
+
+  client.connect('ws://mhd.paul.cx:81/', 'sharks');
+
   return wsServer;
 }
 
-var WebSocketClient = require('websocket').client;
-var AMSTERDAMConnection;
-var client = new WebSocketClient();
-client.on('connectFailed', function(error) {
-    console.log('Connect Error: ' + error.toString());
-});
-
-client.on('connect', function(connection) {
-    AMSTERDAMConnection = connection;
-    console.log('WebSocket client connected');
-    connection.on('error', function(error) {
-        console.log("Connection Error: " + error.toString());
-    });
-    connection.on('close', function() {
-        console.log('Connection Closed');
-    });
-    connection.on('message', function(message) {
-        console.log(message);
-        // DO STUFF
-    });
-});
-
-client.connect('ws://mhd.paul.cx:81/', 'sharks');
 
 module.exports = createServerTaChatte;
 
