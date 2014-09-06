@@ -50,7 +50,24 @@ connection.onmessage = function(message) {
       }
     }
     else { // NANOKEY OH YEAH
-      channels.bell.inst.trigger(72 + payload.height * 23, payload.duration * 50);
+      switch(payload.instrument) {
+        case 100:
+          channels.organ.inst.trigger(60 + payload.height * 23, 90);
+          break;
+        case 101:
+          channels.bell.inst.trigger(72 + payload.height * 23, 90);
+          break;
+        case 102:
+          channels.glock.inst.trigger(72 + payload.height * 23, 90);
+          break;
+        case 103:
+          channels.polyteeth.inst.trigger(72 + payload.height * 23, 90);
+          break;
+        case 104:
+          channels.batt_sin.inst.trigger(72 + payload.height * 23, 90);
+          break;
+      }
+
     }
   } else if (payload.ID !== undefined) {
     var toto = index_to_param[payload.ID].split(':');
