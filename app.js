@@ -26,6 +26,11 @@ window.onbeforeunload = function() {
   connection.close();
 };
 
+params_for_visualization = [];
+for (var i = 0; i < 25; ++i) {
+  params_for_visualization[i] = 0;
+}
+
 connection.onmessage = function(message) {
   var payload = JSON.parse(message.data);
 
@@ -57,5 +62,7 @@ connection.onmessage = function(message) {
     channels[cName].inst.set_param(pName, norm);
     channels[cName].inst.params[pName].slida.value = norm;
     channels[cName].inst.params[pName].labelo.innerHTML = norm;
+    params_for_visualization[payload.ID] = payload.value;
+    console.log("payload.ID: "+payload.ID + " val: "+ payload.value);
   }
 };

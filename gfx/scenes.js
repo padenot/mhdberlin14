@@ -13,15 +13,20 @@ function draw_mesh_list(list) {
     }
 }
 
-function shift_param_buffer(array, new_val_y0, new_val_y1, decay) {
-    for (var i = 1; i < array.length/2; ++i) {
-        var d1 = array[(i-1)*2] - array[i*2];
-        var d2 = array[(i-1)*2+1] - array[i*2+1];
-        array[i*2]   += d1 * decay;
-        array[i*2+1] += d2 * decay;
+function shift_param_buffer(array, new_val_y0, new_val_y1, chicken, param) {
+    for (var i = 1; i < array.length/4; ++i) {
+        var d1 = array[(i-1)*4] - array[i*4];
+        var d2 = array[(i-1)*4+2] - array[i*4+2];
+        array[i*4]   += d1 * chicken;
+        array[i*4+1] = param;
+        array[i*4+2] += d2 * chicken;
+        array[i*4+3] = param;
     }
     array[0] = new_val_y0;
-    array[1] = new_val_y1;
+    array[2] = new_val_y1;
+    array[1] = param;
+    array[3] = param;
+    assert(param <= 1.5);
 }
 
 var crazy_spin_factor = 2.0;
@@ -30,8 +35,8 @@ var crazy_spin_speed = 1000.0;
 var more_crazy_spin_factor = 10.0;
 var more_crazy_spin_speed = 10.0;
 
-var yet_another_param_to_shake_things_up = 2;
-var yet_another_param_to_shake_things_up_speed = 200;
+var yet_another_param_to_shake_things_up = 10;
+var yet_another_param_to_shake_things_up_speed = 20;
 
 var camera_shakiness = 100.0;
 var camera_radius = 0.5;
@@ -43,6 +48,35 @@ function scenes_init() {
     gfx.programs.background = load_shader_program("uv-vs", "background-fs");
     gfx.programs.textured = load_shader_program("uv-vs", "textured-fs");
 
+    gfx.geometries.param_buffers = [];
+    var id = 0;
+    gfx.geometries.param_buffers.push(
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++),
+        create_param_line_geom(id++)
+    );
 
     gfx.textures.intermediate = create_texture();
 
@@ -59,15 +93,21 @@ function scenes_init() {
                     program: gfx.programs.lines1,
                     update: function(times) {
                         for (var i = 0; i < gfx.geometries.param_buffers.length; ++i) {
+                            var param = params_for_visualization[i] * 0.01;
+                            if (param) {
+                                console.log("param "+i+": "+param);
+                            }
+
                             var param_buf = gfx.geometries.param_buffers[i].param_buffer;
                             var t = times.demo;
                             var twist = yet_another_param_to_shake_things_up*Math.sin(t/yet_another_param_to_shake_things_up_speed)
                             shift_param_buffer(param_buf,
-                                crazy_spin_factor*twist+2*twist*Math.sin(t/crazy_spin_speed)
-                                    + more_crazy_spin_factor * Math.sin(t/more_crazy_spin_speed),
-                                crazy_spin_factor*(twist+2)+2*(twist+2)*Math.sin(t/crazy_spin_speed)
-                                    + more_crazy_spin_factor * Math.sin(t/more_crazy_spin_speed),
-                                0.3
+                                Math.sin(t*param) + crazy_spin_factor*twist+2*twist*Math.sin(t/crazy_spin_speed)
+                                                  + more_crazy_spin_factor * Math.sin(t/more_crazy_spin_speed),
+                                Math.sin(t*param) + crazy_spin_factor*(twist+2)+2*(twist+2)*Math.sin(t/crazy_spin_speed)
+                                                  + more_crazy_spin_factor * Math.sin(t/more_crazy_spin_speed),
+                                0.15,
+                                param
                             );
                             upload_param_buffer(gfx.geometries.param_buffers[i]);
                             gfx.uniforms.u_cam_pos = [

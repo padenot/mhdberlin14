@@ -42,7 +42,7 @@ var canvas
 var textureCanvas
 var textureContext
 
-function on_load() {
+function gfx_on_load() {
   canvas = document.getElementById("canvas");
   gl_init();
 
@@ -205,7 +205,7 @@ var vs_prelude = "attribute vec3 a_position;\n"
                + "attribute vec3 a_normal;\n"
                + "attribute vec3 a_color;\n"
                + "attribute vec2 a_uv;\n"
-               + "attribute float a_param_buf;\n"
+               + "attribute vec2 a_param_buf;\n"
                + "//24\n"
 
 // Taken from MDN
@@ -451,8 +451,7 @@ function render_scene(scene, demo_time, scene_time) {
 
 var _fake_audio_time = 0;
 function get_audio_time() {
-  _fake_audio_time += 1;
-  return _fake_audio_time;
+  return ac.currentTime*10.0;
 }
 
 var _time = 0;
