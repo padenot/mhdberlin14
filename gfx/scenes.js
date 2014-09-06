@@ -24,12 +24,33 @@ function shift_param_buffer(array, new_val_y0, new_val_y1, decay) {
     array[1] = new_val_y1;
 }
 
+var crazy_spin_factor = 2.0;
+var crazy_spin_speed = 1000.0;
+
+var more_crazy_spin_factor = 10.0;
+var more_crazy_spin_speed = 10.0;
+
+var yet_another_param_to_shake_things_up = 2;
+var yet_another_param_to_shake_things_up_speed = 200;
+
+var camera_shakiness = 100.0;
+var camera_radius = 0.5;
+
 function scenes_init() {
+
+    gfx.programs.uv = load_shader_program("uv-vs", "uv-fs");
+    gfx.programs.lines1 = load_shader_program("lines1-vs", "lines1-fs");
+    gfx.programs.background = load_shader_program("uv-vs", "background-fs");
+    gfx.programs.textured = load_shader_program("uv-vs", "textured-fs");
+
+
+    gfx.textures.intermediate = create_texture();
+
     gfx.scenes = {
         test: {
             passes: [
                 {
-                  //render_to: {color: textures.buildings},
+                  //render_to: {color: gfx.textures.intermediate},
                   render: draw_mesh(gfx.geometries.quad),
                   program: gfx.programs.background
                 },
@@ -40,13 +61,19 @@ function scenes_init() {
                         for (var i = 0; i < gfx.geometries.param_buffers.length; ++i) {
                             var param_buf = gfx.geometries.param_buffers[i].param_buffer;
                             var t = times.demo;
-                            var twist = 5*Math.sin(t/20)
+                            var twist = yet_another_param_to_shake_things_up*Math.sin(t/yet_another_param_to_shake_things_up_speed)
                             shift_param_buffer(param_buf,
-                                2*twist+2*twist*Math.sin(t/10),
-                                2*(twist+2)+2*(twist+2)*Math.sin(t/10),
+                                crazy_spin_factor*twist+2*twist*Math.sin(t/crazy_spin_speed)
+                                    + more_crazy_spin_factor * Math.sin(t/more_crazy_spin_speed),
+                                crazy_spin_factor*(twist+2)+2*(twist+2)*Math.sin(t/crazy_spin_speed)
+                                    + more_crazy_spin_factor * Math.sin(t/more_crazy_spin_speed),
                                 0.3
                             );
                             upload_param_buffer(gfx.geometries.param_buffers[i]);
+                            gfx.uniforms.u_cam_pos = [
+                                camera_radius*Math.cos(t/camera_shakiness),
+                                camera_radius*Math.sin(t/camera_shakiness),
+                            ]
                         }
                         gfx.uniforms.u_float_param_0 = 0.2 + 0.1*Math.sin(t/(i+2));
                     }
