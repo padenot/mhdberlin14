@@ -1,5 +1,7 @@
 var WebSocketServer = require('websocket').server;
 
+var maxParam = 0;
+
 // create the server
 function createServerTaChatte(httpserver) {
   var conn;
@@ -14,6 +16,10 @@ function createServerTaChatte(httpserver) {
 
       conn.on('message', function(message) {
         console.log('got message', message);
+        maxParam = parseInt(message.utf8Data, 10);
+        if (AMSTERDAMConnection) {
+          AMSTERDAMConnection.send(maxParam);
+        }
       });
 
       conn.on('close', function(connection) {
@@ -38,6 +44,30 @@ function createServerTaChatte(httpserver) {
 
   return wsServer;
 }
+
+var WebSocketClient = require('websocket').client;
+var AMSTERDAMConnection;
+var client = new WebSocketClient();
+client.on('connectFailed', function(error) {
+    console.log('Connect Error: ' + error.toString());
+});
+
+client.on('connect', function(connection) {
+    AMSTERDAMConnection = connection;
+    console.log('WebSocket client connected');
+    connection.on('error', function(error) {
+        console.log("Connection Error: " + error.toString());
+    });
+    connection.on('close', function() {
+        console.log('Connection Closed');
+    });
+    connection.on('message', function(message) {
+        console.log(message);
+        // DO STUFF
+    });
+});
+
+client.connect('ws://mhd.paul.cx:81/', 'sharks');
 
 module.exports = createServerTaChatte;
 
