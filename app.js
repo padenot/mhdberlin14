@@ -34,18 +34,21 @@ for (var i = 0; i < 25; ++i) {
 connection.onmessage = function(message) {
   var payload = JSON.parse(message.data);
 
-  if (payload.instrument) {
+  if (payload.instrument !== undefined) {
     if (payload.instrument < 100) { // MONOME OUI OUI
+      console.log(payload);
       switch(payload.instrument) {
         case 0:
-          channels.kick.inst.trigger(-1, payload.duration * 127, 0); break;
+          channels.kick.inst.trigger(69 + payload.duration * 23, 90); break;
         case 1:
           channels.snare.inst.trigger(50 + payload.duration * 23, 180, 0); break;
         case 2: // vessels
           channels.vessels.inst.trigger(20 + payload.duration * 23, 90, 90); break;
         case 3: // pad
           channels.pad.inst.trigger(20 + payload.duration * 23, 90, 90); break;
-        case 4: // wind
+        case 4: // sub
+          channels.sub.inst.trigger(20 + payload.duration * 23, 90); break;
+        case 5: // wind
           channels.wind.inst.set_param('lp-freq-hz', payload.duration * 5000); break;
       }
     }
