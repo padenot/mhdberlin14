@@ -186,9 +186,11 @@ channel.prototype.sliders = function(k, node) {
     input.step= param.step;
     input.value = param.value;
     input.addEventListener("input", function(e) {
-        k.set_param(key, e.target.value);
-        e.target.parentNode.querySelector(".value").innerHTML = e.target.value;
-        });
+      k.set_param(key, e.target.value);
+      e.target.parentNode.querySelector(".value").innerHTML = e.target.value;
+    });
+    param.slida = input;
+    param.labelo = value;
     node.appendChild(div);
   }
 

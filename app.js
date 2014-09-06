@@ -14,7 +14,6 @@ function init_maps_params() {
 
 connection.onopen = function () {
     // connection is opened and ready to use
-   console.log("open");
    connection.send("2");
 };
 
@@ -23,15 +22,12 @@ connection.onerror = function (error) {
 };
 
 window.onbeforeunload = function() {
-  console.log("onbeforeunload");
   connection.onclose = function () {}; // disable onclose handler first
   connection.close();
 };
 
 connection.onmessage = function(message) {
-  console.log(message);
   var payload = JSON.parse(message.data);
-  console.log(payload);
 
   if (payload.instrument) {
     if (payload.instrument < 100) { // MONOME OUI OUI
@@ -51,14 +47,15 @@ connection.onmessage = function(message) {
     else { // NANOKEY OH YEAH
       channels.bell.inst.trigger(72 + payload.height * 23, payload.duration * 50);
     }
-  }
-  else if (payload.ID) {
+  } else if (payload.ID !== undefined) {
     var toto = index_to_param[payload.ID].split(':');
-    console.log(toto);
     var cName = toto[0], pName = toto[1];
     var min = channels[cName].inst.params[pName].min;
     var max = channels[cName].inst.params[pName].max;
 
-    channels[cName].inst.set_param(pName, (payload.value / 100) * (max - min) + min);
+    var norm = (payload.value / 100) * (max - min) + min;
+    channels[cName].inst.set_param(pName, norm);
+    channels[cName].inst.params[pName].slida.value = norm;
+    channels[cName].inst.params[pName].labelo.innerHTML = norm;
   }
 };
