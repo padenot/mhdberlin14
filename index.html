@@ -188,11 +188,21 @@ window.onload = function() {
   var channels = [];
   channels.push(new channel(new kick(ac)));
   channels.push(new channel(new snare(ac)));
-  channels.push(new channel(new pad(ac)));
+ // channels.push(new channel(new pad(ac)));
+  channels.push(new channel(new test(ac)));
+  channels.push(new channel(new glock(ac)));
+  channels.push(new channel(new polyteeth(ac)));
+  channels.push(new channel(new batt_sin(ac)));
+  channels.push(new channel(new organ(ac)));
 }
 </script>
 <script src=instrument.js></script>
 <script src=kick.js></script>
 <script src=pad.js></script>
 <script src=snare.js></script>
+<script src=test.js></script>
+<script src=glock.js></script>
+<script src=polyteeth.js></script>
+<script src=batt_sin.js></script>
+<script src=organ2.js></script>
 <div id=params></div>
