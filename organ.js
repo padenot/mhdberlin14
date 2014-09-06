@@ -6,20 +6,20 @@ function organ(ctx) {
   this.register_param("decay", 0.2, 0.01, 0.5, 0.01);
   this.register_param("freq0", 440, 220, 880, 1);
   this.register_param("ATK", 1, 0.05, 5, 0.1);
-  this.register_param("Gain0", 1, 0, 1, 1/8);
-  this.register_param("Gain1", 1, 0, 1, 1/8);
-  this.register_param("Gain2", 1, 0, 1, 1/8);
-  this.register_param("Gain3", 1, 0, 1, 1/8);
-  this.register_param("Gain4", 1, 0, 1, 1/8);
-  this.register_param("Gain5", 1, 0, 1, 1/8);
-  this.register_param("Gain6", 1, 0, 1, 1/8);
-  this.register_param("Gain7", 1, 0, 1, 1/8);
-  this.register_param("Gain8", 1, 0, 1, 1/8);
+  this.register_param("Gain0", 0.5, 0, 1, 0.125);
+  this.register_param("Gain1", 0.5, 0, 1, 0.125);
+  this.register_param("Gain2", 0.5, 0, 1, 0.125);
+  this.register_param("Gain3", 0.5, 0, 1, 0.125);
+  this.register_param("Gain4", 0.5, 0, 1, 0.125);
+  this.register_param("Gain5", 0.5, 0, 1, 0.125);
+  this.register_param("Gain6", 0.5, 0, 1, 0.125);
+  this.register_param("Gain7", 0.5, 0, 1, 0.125);
+  this.register_param("Gain8", 0.5, 0, 1, 0.125);
   
 
   this.organ0 = ctx.createOscillator();
   this.organ0.type = "sine";
-  this.organ0.frequency.value = this.p("freq0")/2;
+  this.organ0.frequency.value = this.p("freq0")*0.5;
   this.organ0.start(0);
   
   this.organ1 = ctx.createOscillator();
@@ -62,6 +62,9 @@ function organ(ctx) {
   this.organ8.frequency.value = this.p("freq0")*8;
   this.organ8.start(0);
  
+  this.organGain0 = ctx.createGain();
+  this.organGain0.gain.setValueAtTime(0,0);
+  
   this.organGain1 = ctx.createGain();
   this.organGain1.gain.setValueAtTime(0,0); 
 
@@ -89,6 +92,7 @@ function organ(ctx) {
   this.organGain = ctx.createGain();
   this.organGain.gain.setValueAtTime(0,0);
   
+  this.organ0.connect(this.organGain0);
   this.organ1.connect(this.organGain1);
   this.organ2.connect(this.organGain2);
   this.organ3.connect(this.organGain3);
@@ -98,6 +102,7 @@ function organ(ctx) {
   this.organ7.connect(this.organGain7);
   this.organ8.connect(this.organGain8);
 
+  this.organGain0.connect(this.organGain);
   this.organGain1.connect(this.organGain);
   this.organGain2.connect(this.organGain);
   this.organGain3.connect(this.organGain);
@@ -117,7 +122,7 @@ organ.prototype.trigger = function(velocity, time) {
   var t = time || ac.currentTime;
   var v = velocity2gain(velocity);
 
-  this.organ0.frequency.value = this.p("freq0")/2;
+  this.organ0.frequency.value = this.p("freq0")*0.5;
   this.organGain0.gain.cancelScheduledValues(t);
   this.organGain0.gain.setValueAtTime(this.p("Gain0"), t);
 
