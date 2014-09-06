@@ -211,6 +211,9 @@ window.onload = function() {
   channels.vessels = new channel(new vessels(ac), ac.destination);
   channels.pad = new channel(new pad(ac), ac.destination);
   channels.bell = new channel(new bell(ac), ac.destination);
+  channels.push(new channel(new glock(ac)));
+  channels.push(new channel(new polyteeth(ac)));
+  channels.push(new channel(new batt_sin(ac)));
   channels.wind = new channel(new wind(ac), ac.destination);
   init_maps_params();
 }
@@ -223,5 +226,8 @@ window.onload = function() {
 <script src=bell.js></script>
 <script src=wind.js></script>
 <script src=vessels.js></script>
+<script src=glock.js></script>
+<script src=polyteeth.js></script>
+<script src=batt_sin.js></script>
 <script src=app.js></script>
 <div id=params></div>
