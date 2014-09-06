@@ -1,5 +1,17 @@
 var connection = new WebSocket('ws://127.0.0.1:3333', 'sharks');
 
+var index_to_param = [];
+
+function init_maps_params() {
+  var idx = 0;
+  for (var i in channels) {
+    var params = channels[i].inst.get_params();
+    for (var j in params) {
+      index_to_param[idx++] = i + ":" + j;
+    }
+  }
+}
+
 connection.onopen = function () {
     // connection is opened and ready to use
    console.log("open");
@@ -41,6 +53,12 @@ connection.onmessage = function(message) {
     }
   }
   else if (payload.ID) {
-    console.log("PARAM");
+    var toto = index_to_param[payload.ID].split(':');
+    console.log(toto);
+    var cName = toto[0], pName = toto[1];
+    var min = channels[cName].inst.params[pName].min;
+    var max = channels[cName].inst.params[pName].max;
+
+    channels[cName].inst.set_param(pName, (payload.value / 100) * (max - min) + min);
   }
 };

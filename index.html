@@ -201,7 +201,7 @@ channel.prototype.sliders = function(k, node) {
   }
 }
 
-var channels = {};
+channels = {};
 window.onload = function() {
   channels.kick = new channel(new kickb(ac), ac.destination);
   channels.snare = new channel(new snareb(ac), ac.destination);
@@ -210,6 +210,7 @@ window.onload = function() {
   channels.pad = new channel(new pad(ac), ac.destination);
   channels.bell = new channel(new bell(ac), ac.destination);
   channels.wind = new channel(new wind(ac), ac.destination);
+  init_maps_params();
 }
 </script>
 <script src=instrument.js></script>
