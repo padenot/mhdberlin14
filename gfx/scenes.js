@@ -94,9 +94,9 @@ function scenes_init() {
                     update: function(times) {
                         for (var i = 0; i < gfx.geometries.param_buffers.length; ++i) {
                             var param = params_for_visualization[i] * 0.01;
-                            if (param) {
-                                console.log("param "+i+": "+param);
-                            }
+                            //if (param) {
+                            //    console.log("param "+i+": "+param);
+                            //}
 
                             var param_buf = gfx.geometries.param_buffers[i].param_buffer;
                             var t = times.demo;

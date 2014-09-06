@@ -62,7 +62,7 @@ connection.onmessage = function(message) {
     channels[cName].inst.set_param(pName, norm);
     channels[cName].inst.params[pName].slida.value = norm;
     channels[cName].inst.params[pName].labelo.innerHTML = norm;
-    params_for_visualization[payload.ID] = payload.value;
-    console.log("payload.ID: "+payload.ID + " val: "+ payload.value);
+    params_for_visualization[parseInt(payload.ID) % 25] = payload.value;
+    //console.log("payload.ID: "+ (parseInt(payload.ID) % 25) + " val: "+ payload.value);
   }
 };
