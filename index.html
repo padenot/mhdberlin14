@@ -149,10 +149,31 @@ function render() {
     rms += norm * norm;
     self.c_scope.fillRect(i * 2, self.scope.height / 2, 0.8, self.array[i] - 127);
     if (two_scopes) {
+<<<<<<< HEAD
       self.c_freq.fillRect(i * 2, self.freq.height, 0.8, -((self.fft[i] + 100) / 70) * self.freq.height)
     } else {
       self.c_scope.fillRect(i * 2, self.scope.height, 0.8, -((self.fft[i] +
               100) / 70) * self.scope.height)
+=======
+      self.c_freq.clearRect(0, 0, self.freq.width, self.freq.height);
+    }
+    self.an.getByteTimeDomainData(self.array);
+    self.an.getFloatFrequencyData(self.fft);
+    var rms = 0;
+    for (var i = 0; i < self.array.length; i++) {
+      var norm = (self.array[i] - 128) / 256;
+      rms += norm * norm;
+      self.c_scope.fillRect(i * 2, self.scope.height / 2, 0.8, self.array[i] - 127);
+      if (two_scopes) {
+        self.c_freq.fillRect(i * 2, self.freq.height, 0.8, -((self.fft[i] + 100) / 70) * self.freq.height)
+      } else {
+        self.c_scope.fillRect(i * 2, self.scope.height, 0.8, -((self.fft[i] +
+                100) / 70) * self.scope.height)
+      }
+    }
+    rms = Math.sqrt(rms / self.array.length);
+    if (!(this.countcount % 10)) {
+>>>>>>> LOL
     }
   }
   rms = Math.sqrt(rms / self.array.length);
@@ -205,15 +226,16 @@ channel.prototype.sliders = function(k, node) {
 
 channels = {};
 window.onload = function() {
+<<<<<<< HEAD
   channels.kick = new channel(new kickb(ac), ac.destination);
   channels.snare = new channel(new snareb(ac), ac.destination);
   channels.sub = new channel(new subsub(ac), ac.destination);
   channels.vessels = new channel(new vessels(ac), ac.destination);
   channels.pad = new channel(new pad(ac), ac.destination);
   channels.bell = new channel(new bell(ac), ac.destination);
-  channels.push(new channel(new glock(ac)));
-  channels.push(new channel(new polyteeth(ac)));
-  channels.push(new channel(new batt_sin(ac)));
+  channels.glock = new channel(new glock(ac));
+  channels.polyteeth = new channel(new polyteeth(ac));
+  channels.batt_sin = new new channel(new batt_sin(ac));
   channels.wind = new channel(new wind(ac), ac.destination);
   init_maps_params();
 }
