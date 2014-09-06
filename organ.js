@@ -152,7 +152,7 @@ organ.prototype.trigger = function(note, velocity, time) {
   
   this.organGain.gain.cancelScheduledValues(t);
   this.organGain.gain.setValueAtTime(0, t);
-  this.organGain.gain.linearRampToValueAtTime(v * this.p("ATK"), t + 0.01);
+  this.organGain.gain.linearRampToValueAtTime(0.00001, t + 0.001);
   this.organGain.gain.setTargetAtTime(0, t + 0.01, this.p("decay"));
 };
 

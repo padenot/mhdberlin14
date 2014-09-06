@@ -185,13 +185,13 @@ return Math.pow(2, (n - 69) / 12) * 440;
 var channel_width = 350;
 var channels = [];
 
-var len = ac.sampleRate * 3;
+var len = ac.sampleRate * 1;
 var buffer = ac.createBuffer(2, len, ac.sampleRate)
 var iL = buffer.getChannelData(0)
 var iR = buffer.getChannelData(1)
 for(i=0,l=buffer.length;i<l;i++) {
-iL[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
-iR[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+iL[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+iR[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
 }
 
 var verb = ac.createConvolver();
@@ -323,9 +323,9 @@ window.onload = function() {
   channels.kick = new channel(new kickb(ac), ac.destination);
   channels.snare = new channel(new snareb(ac), ac.destination);
   channels.sub = new channel(new subsub(ac), ac.destination);
-  channels.vessels = new channel(new vessels(ac), ac.destination);
+  channels.vessels = new channel(new vessels(ac), verb);
   channels.pad = new channel(new pad(ac), ac.destination);
-  channels.bell = new channel(new bell(ac), ac.destination);
+  channels.bell = new channel(new bell(ac), verb);
   channels.glock = new channel(new glock(ac), ac.destination);
   channels.polyteeth = new channel(new polyteeth(ac), ac.destination);
   channels.batt_sin = new channel(new batt_sin(ac), ac.destination);

@@ -30,7 +30,7 @@ function bell(ctx) {
   this.mastergain.gain.setValueAtTime(0.0, ac.currentTime);
 
   this.register_param("attack", 0.0, 0.0, 0.1, 0.01);
-  this.register_param("decay", 1.0, 0.0, 4.0, 0.1);
+  this.register_param("decay", 2.0, 0.0, 4.0, 0.1);
 }
 
 bell.prototype.trigger = function(note, velocity, time) {
@@ -38,7 +38,7 @@ bell.prototype.trigger = function(note, velocity, time) {
     this.osc[i].frequency.value = n2f(note) * this.partials[i].f;
   }
   this.mastergain.gain.setValueAtTime(0.0, ac.currentTime);
-  this.mastergain.gain.linearRampToValueAtTime(velocity2gain(velocity), ac.currentTime + this.p("attack"));
+  this.mastergain.gain.linearRampToValueAtTime(0.4, ac.currentTime + this.p("attack"));
   this.mastergain.gain.setTargetAtTime(0.0, ac.currentTime + this.p("attack"), this.p("decay") / 8);
   // this.lp.frequency.setValueAtTime(this.p("lowfreq"), ac.currentTime);
   // this.lp.frequency.linearRampToValueAtTime(this.p("highfreq"), ac.currentTime + this.p("attack"));

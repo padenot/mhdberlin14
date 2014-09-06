@@ -55,19 +55,19 @@ connection.onmessage = function(message) {
     else { // NANOKEY OH YEAH
       switch(payload.instrument) {
         case 100:
-          channels.organ.inst.trigger(60 + payload.height * 23, 90);
+          channels.organ.inst.trigger(60 + payload.height * 23, 0.5);
           break;
         case 101:
-          channels.bell.inst.trigger(72 + payload.height * 23, 90);
+          channels.bell.inst.trigger(72 + payload.height * 23, 30);
           break;
         case 102:
-          channels.glock.inst.trigger(72 + payload.height * 23, 90);
+          channels.glock.inst.trigger(72 + payload.height * 23, 30);
           break;
         case 103:
-          channels.polyteeth.inst.trigger(72 + payload.height * 23, 90);
+          channels.polyteeth.inst.trigger(72 + payload.height * 23, 30);
           break;
         case 104:
-          channels.batt_sin.inst.trigger(72 + payload.height * 23, 90);
+          channels.batt_sin.inst.trigger(72 + payload.height * 23, 30);
           break;
       }
 
