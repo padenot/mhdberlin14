@@ -14,7 +14,7 @@ function init_maps_params() {
 
 connection.onopen = function () {
     // connection is opened and ready to use
-   connection.send("2");
+   connection.send(index_to_param.length);
 };
 
 connection.onerror = function (error) {
