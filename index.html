@@ -204,7 +204,7 @@ var trig = document.createElement("button");
 trig.innerHTML = "trigger";
 var self = this;
 trig.addEventListener("click", function() {
-  self.inst.trigger(32, 90);
+  self.inst.trigger(69, 90);
 });
 node.appendChild(trig);
 }
@@ -309,6 +309,10 @@ window.onload = function() {
   channels.vessels = new channel(new vessels(ac), ac.destination);
   channels.pad = new channel(new pad(ac), ac.destination);
   channels.bell = new channel(new bell(ac), ac.destination);
+  channels.glock = new channel(new glock(ac), ac.destination);
+  channels.polyteeth = new channel(new polyteeth(ac), ac.destination);
+  channels.batt_sin = new channel(new batt_sin(ac), ac.destination);
+  channels.organ = new channel(new organ(ac), ac.destination);
   channels.wind = new channel(new wind(ac), ac.destination);
   init_maps_params();
   gfx_on_load();
@@ -322,6 +326,10 @@ window.onload = function() {
 <script src=bell.js></script>
 <script src=wind.js></script>
 <script src=vessels.js></script>
+<script src=glock.js></script>
+<script src=polyteeth.js></script>
+<script src=batt_sin.js></script>
+<script src=organ.js></script>
 <script src=app.js></script>
 <div id=params></div>
 
