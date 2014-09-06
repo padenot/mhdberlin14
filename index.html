@@ -139,9 +139,7 @@ channel.prototype.scopes = function(k, node) {
       }
     }
     rms = Math.sqrt(rms / self.array.length);
-    console.log(rms)
     if (!(this.countcount % 10)) {
-      self.root_node.style.filter = "blur(" + rms * 50 + "px)";
     }
     requestAnimationFrame(render);
   }
@@ -189,7 +187,6 @@ window.onload = function() {
   channels.push(new channel(new kick(ac)));
   channels.push(new channel(new snare(ac)));
  // channels.push(new channel(new pad(ac)));
-  channels.push(new channel(new test(ac)));
   channels.push(new channel(new glock(ac)));
   channels.push(new channel(new polyteeth(ac)));
   channels.push(new channel(new batt_sin(ac)));
