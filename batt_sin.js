@@ -5,7 +5,6 @@ function batt_sin(ctx) {
 
   this.register_param("decay", 0.2, 0.01, 0.5, 0.01);
   this.register_param("decay_low", 0.5, 0.3, 1, 0.01);
-  this.register_param("freq0", 440, 220, 880, 1);
   this.register_param("ATK", 0.2, 0.05, 5, 0.1);
   this.register_param("mix",0.5,0,1,0.01);
 
@@ -59,27 +58,30 @@ batt_sin.prototype.connect = function(node) {
 batt_sin.prototype.trigger = function(note, velocity, time) {
   var t = time || this.ctx.currentTime;
   var v = velocity2gain(velocity);
-  
-  this.mix_high.gain.setValueAtTime = (1-this.p("mix"),t);
-  
+
+  this.mix_high.gain.setValueAtTime(1-this.p("mix"),t);
+
+
+  var F = n2f(note);
+
   this.mix.gain.cancelScheduledValues(t);
   this.mix.gain.setValueAtTime(0, t);
   this.mix.gain.linearRampToValueAtTime(v * this.p("ATK"), t + 0.01);
   this.mix.gain.setTargetAtTime(0, t + 0.01, this.p("decay"));
-  this.sin2.frequency.value = this.p("freq0");
-  this.sin3.frequency.value = this.p("freq0")*1.02;
-  this.sin1.frequency.value = this.p("freq0")*0.98;
+  this.sin2.frequency.value = F;
+  this.sin3.frequency.value = F*1.02;
+  this.sin1.frequency.value = F*0.98;
 
-  this.mix_low.gain.setValueAtTime = (this.p("mix"),t);
- 
+  this.mix_low.gain.setValueAtTime(this.p("mix"),t);
+
   this.mix.gain.cancelScheduledValues(t);
   this.mix.gain.setValueAtTime(0, t);
   this.mix.gain.linearRampToValueAtTime(v * this.p("ATK"), t + 0.01);
   this.mix.gain.setTargetAtTime(0, t + 0.01, this.p("decay")+this.p("decay_low"));
-  this.sin2l.frequency.value = this.p("freq0")/2;
-  this.sin3l.frequency.value = this.p("freq0")/2*1.02;
-  this.sin1l.frequency.value = this.p("freq0")/2*0.98;
-  
+  this.sin2l.frequency.value = F/2;
+  this.sin3l.frequency.value = F/2*1.02;
+  this.sin1l.frequency.value = F/2*0.98;
+
   this.mix.gain.cancelScheduledValues(t);
   this.mix.gain.setValueAtTime(0, t);
   this.mix.gain.linearRampToValueAtTime(v * this.p("ATK"), t + 0.01);
