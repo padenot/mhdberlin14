@@ -38,9 +38,9 @@ function polyteeth(ctx) {
 
 polyteeth.prototype.connect = function(node) {
   this.polyteethGain.connect(node);
-}
+};
 
-polyteeth.prototype.trigger = function(velocity, time) {
+polyteeth.prototype.trigger = function(note, velocity, time) {
   var t = time || this.ctx.currentTime;
   var v = velocity2gain(velocity);
 
@@ -54,8 +54,8 @@ polyteeth.prototype.trigger = function(velocity, time) {
   this.polyteethGain.gain.setValueAtTime(0, t);
   this.polyteethGain.gain.linearRampToValueAtTime(v * this.p("ATK"), t + 0.01);
   this.polyteethGain.gain.setTargetAtTime(0, t + 0.01, this.p("decay"));
-}
+};
 
 polyteeth.prototype.name = function() {
   return "polyteeth";
-}
+};

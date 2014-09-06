@@ -30,9 +30,9 @@ function glock(ctx) {
 
 glock.prototype.connect = function(node) {
   this.glockGain.connect(node);
-}
+};
 
-glock.prototype.trigger = function(velocity, time) {
+glock.prototype.trigger = function(note, velocity, time) {
   var t = time || this.ctx.currentTime;
   var v = velocity2gain(velocity);
 
@@ -48,8 +48,8 @@ glock.prototype.trigger = function(velocity, time) {
   this.glockGain.gain.setValueAtTime(0, t);
   this.glockGain.gain.linearRampToValueAtTime(v * this.p("ATK"), t + 0.01);
   this.glockGain.gain.setTargetAtTime(0, t + 0.01, this.p("decay"));
-}
+};
 
 glock.prototype.name = function() {
   return "glock";
-}
+};

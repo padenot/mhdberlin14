@@ -54,9 +54,9 @@ function batt_sin(ctx) {
 
 batt_sin.prototype.connect = function(node) {
   this.mix.connect(node);
-}
+};
 
-batt_sin.prototype.trigger = function(velocity, time) {
+batt_sin.prototype.trigger = function(note, velocity, time) {
   var t = time || this.ctx.currentTime;
   var v = velocity2gain(velocity);
   
@@ -84,8 +84,8 @@ batt_sin.prototype.trigger = function(velocity, time) {
   this.mix.gain.setValueAtTime(0, t);
   this.mix.gain.linearRampToValueAtTime(v * this.p("ATK"), t + 0.01);
   this.mix.gain.setTargetAtTime(0, t + 0.01, this.p("decay"));
-}
+};
 
 batt_sin.prototype.name = function() {
   return "batt_sin";
-}
+};
