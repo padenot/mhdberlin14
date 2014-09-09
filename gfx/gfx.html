@@ -1,0 +1,93 @@
+<html>
+  <head>
+    <title>Music hack days :)</title>
+    <script src="gfx.js"></script>
+    <script src="scenes.js"></script>
+    <script src="geom.js"></script>
+    <script src="gl-matrix.js"></script>
+    <style>
+      .container {
+        background-color: gray;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+
+  <script id="uv-vs" type="x-shader/x-vertex">
+    varying vec2 v_uv;
+    void main() {
+      gl_Position = u_vp_mat * vec4(a_position, 1.0);
+      v_uv = a_uv;
+    }
+  </script>
+  <script id="uv-fs" type="x-shader/x-fragment">
+    varying vec2 v_uv;
+    void main() {
+      gl_FragColor = vec4(v_uv, 0.0, 1.0);
+    }
+  </script>
+
+  <script id="background-fs" type="x-shader/x-fragment">
+    varying vec2 v_uv;
+    void main() {
+      gl_FragColor = vec4(0.0, 0.15* v_uv.y, 0.3 * v_uv.y, 1.0);
+    }
+  </script>
+
+  <script id="textured-fs" type="x-shader/x-fragment">
+    varying vec2 v_uv;
+    void main() {
+      gl_FragColor = texture2D(u_texture_0, v_uv);
+    }
+  </script>
+
+  <script id="bloom-fs" type="x-shader/x-fragment">
+    varying vec2 v_uv;
+    void main() {
+      gl_FragColor = texture2D(u_texture_0, v_uv + vec2(0.0, 0.0)) * 0.3
+                   + texture2D(u_texture_0, v_uv + vec2(1.0, 0.0)) * 0.15
+                   + texture2D(u_texture_0, v_uv + vec2(-1.0, 0.0)) * 0.15
+                   + texture2D(u_texture_0, v_uv + vec2(0.0, 1.0)) * 0.15
+                   + texture2D(u_texture_0, v_uv + vec2(0.0, -1.0)) * 0.15
+                   + texture2D(u_texture_0, v_uv + vec2(1.0, 1.0)) * 0.05
+                   + texture2D(u_texture_0, v_uv + vec2(1.0, -1.0)) * 0.05
+                   + texture2D(u_texture_0, v_uv + vec2(-1.0, 1.0)) * 0.05
+                   + texture2D(u_texture_0, v_uv + vec2(-1.0, -1.0)) * 0.05
+      ;
+    }
+  </script>
+
+
+  <script id="lines1-vs" type="x-shader/x-vertex">
+    varying vec2 v_uv;
+    void main() {
+      float line_id = a_position.z;
+      float radius = 1.8 * a_position.x + 1.2 * u_float_param_0;
+      float angle = (0.3 * a_position.y + a_param_buf) / 10.0;
+
+      v_uv = vec2(abs(a_param_buf), abs(angle));
+
+      vec4 pos = vec4(
+        u_cam_pos.x + radius * cos(2.0*PI * (angle / u_num_params + line_id/(u_num_params))),
+        u_cam_pos.y + radius * sin(2.0*PI * (angle / u_num_params + line_id/(u_num_params))),
+        a_position.x,
+        1.0
+      );
+
+      gl_Position = pos;
+    }
+  </script>
+  <script id="lines1-fs" type="x-shader/x-fragment">
+    varying vec2 v_uv;
+    void main() {
+      gl_FragColor = vec4(0.9, 0.2, 0.05, 1.0);
+    }
+  </script>
+
+  </head>
+  <body style = "margin:0;" onload="gfx_on_load()">
+    <div class="container">
+      <canvas id="canvas" style="width: 100%; height: 100%; border: solid black 1px;"></canvas>
+    </div>
+  </body>
+</html>

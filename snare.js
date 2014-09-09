@@ -4,7 +4,7 @@ function snare(ctx) {
   Instrument.call(this, ctx);
 
   this.register_param("noisegain", 0.6, 0.0, 2.0, 0.01);
-  this.register_param("noisedecay", 0.03, 0.01, 2, 0.01);
+  this.register_param("noisedecay", 0.015, 0.01, 2, 0.01);
   this.register_param("filterfreq", 3000, 100, 20000, 1);
   this.register_param("osc1freq", 111 + 175, 100, 20000, 1);
   this.register_param("osc2freq", 111 + 224, 100, 20000, 1);
@@ -71,7 +71,7 @@ function snare(ctx) {
   this.adsrosc.connect(this.mastergain);
 }
 
-snare.prototype.trigger = function(velocity, time) {
+snare.prototype.trigger = function(note, velocity, time) {
   var t = time || this.ctx.currentTime;
   var v = velocity2gain(velocity);
 
@@ -106,4 +106,39 @@ snare.prototype.connect = function(node) {
   this.mastergain.connect(node);
 }
 
+snareb.prototype = extend(Instrument);
+
+function snareb(ctx) {
+  Instrument.call(this, ctx);
+  var off = new OfflineAudioContext(1, ac.sampleRate * 2, ac.sampleRate);
+  var k = new snare(off);
+  k.connect(off.destination);
+  k.trigger(32, 90);
+  var self = this;
+  off.oncomplete = function(e) {
+    self.buffer = e.renderedBuffer;
+  }
+  off.startRendering();
+  this.sink = [];
+}
+
+snareb.prototype.connect = function(node) {
+  this.sink.push(node);
+}
+snareb.prototype.trigger = function(note, velocity, time) {
+  var t = time || this.ctx.currentTime;
+  var v = velocity2gain(velocity);
+
+  var s = ac.createBufferSource();
+  s.buffer = this.buffer;
+  s.playbackRate.value = 1 + (note - 50) / 100;
+  for (var i = 0; i < this.sink.length; i++) {
+    s.connect(this.sink[i]);
+  }
+  s.start(0)
+}
+
+snareb.prototype.name = function() {
+  return "snareb";
+}
 

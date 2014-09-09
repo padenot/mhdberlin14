@@ -49,14 +49,8 @@ function kick(ctx) {
   this.pop.connect(this.adsrpop);
   this.click.connect(this.adsrclick);
 
-  // does not process
-  this.lowpass = ctx.createBiquadFilter();
-  this.lowpass.type = "lowpass";
-  this.lowpass.frequency.value = 20000;
-
   this.mixer = ctx.createGain();
   this.mixer.gain.value = 0.6;
-  this.mixer.connect(this.lowpass)
 
   this.adsrbody.connect(this.mixer);
   this.adsrpop.connect(this.mixer);
@@ -64,9 +58,9 @@ function kick(ctx) {
 }
 
 kick.prototype.connect = function(node) {
-  this.lowpass.connect(node);
+  this.mixer.connect(node);
 }
-kick.prototype.trigger = function(velocity, time) {
+kick.prototype.trigger = function(note, velocity, time) {
   var t = time || this.ctx.currentTime;
   var v = velocity2gain(velocity);
 
@@ -75,7 +69,7 @@ kick.prototype.trigger = function(velocity, time) {
   this.click.frequency.value = this.p("clickfreq");
 
   this.body.frequency.cancelScheduledValues(t);
-  this.body.frequency.setValueAtTime(this.p("highfreq"), t);
+  // this.body.frequency.setValueAtTime(this.p("highfreq"), t + 0.01);
   this.body.frequency.linearRampToValueAtTime(this.p("basefreq"), t + 0.001, 0.001);
   this.body.frequency.setTargetAtTime(this.p("endfreq"), t + 0.002, this.p("bodyfreqdecay"))
 
@@ -85,8 +79,8 @@ kick.prototype.trigger = function(velocity, time) {
 
   // adsr
   this.adsrbody.gain.cancelScheduledValues(t);
-  this.adsrbody.gain.setValueAtTime(0, t);
-  this.adsrbody.gain.linearRampToValueAtTime(v * this.p("bodygain"), t + 0.01);
+  this.adsrbody.gain.setValueAtTime(0, t + 0.01);
+  this.adsrbody.gain.linearRampToValueAtTime(v * this.p("bodygain"), t + 0.011);
   this.adsrbody.gain.setTargetAtTime(0, t + 0.02, this.p("bodydecay"));
 
   // this.adsrpop.gain.cancelScheduledValues(t);
@@ -103,3 +97,41 @@ kick.prototype.trigger = function(velocity, time) {
 kick.prototype.name = function() {
   return "kick";
 }
+
+
+kickb.prototype = extend(Instrument);
+
+function kickb(ctx) {
+  Instrument.call(this, ctx);
+  var off = new OfflineAudioContext(1, ac.sampleRate * 2, ac.sampleRate);
+  var k = new kick(off);
+  k.connect(off.destination);
+  k.trigger(32, 90);
+  var self = this;
+  off.oncomplete = function(e) {
+    self.buffer = e.renderedBuffer;
+  }
+  off.startRendering();
+  this.sink = [];
+}
+
+kickb.prototype.connect = function(node) {
+  this.sink.push(node);
+}
+
+kickb.prototype.trigger = function(note, velocity, time) {
+  var t = time || this.ctx.currentTime;
+  var v = velocity2gain(velocity);
+
+  var s = ac.createBufferSource();
+  s.buffer = this.buffer;
+  for (var i = 0; i < this.sink.length; i++) {
+    s.connect(this.sink[i]);
+  }
+  s.start(0)
+}
+
+kickb.prototype.name = function() {
+  return "kickb";
+}
+

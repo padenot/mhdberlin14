@@ -3,43 +3,31 @@ wind.prototype = extend(Instrument);
 function wind(ctx) {
   Instrument.call(this, ctx);
 
-  this.osc = ac.createOscillator();
-  this.osc.type = "sawtooth";
+  var buffer = ac.createBuffer(1, ac.sampleRate * 10, ac.sampleRate);
+  var c = buffer.getChannelData(0);
+  for (var i = 0; i < c.length; i++) {
+    c[i] = Math.random() * 2 - 1;
+  }
 
-  this.lp = ac.createBiquadFilter();
-  this.lp.type = "lowpass";
-
-  this.hp = ac.createBiquadFilter();
-  this.hp.type = "highpass";
-
-  this.gain = ac.createGain();
-  this.osc.connect(this.gain);
-  this.gain.connect(this.lp);
-  this.lp.connect(this.hp);
-
+  this.source = ac.createBufferSource();
+  this.source.buffer = buffer;
+  this.source.loop = true;
+  this.gain = ac.createGain(); 
   this.gain.gain.setValueAtTime(0.0, ac.currentTime);
 
-  this.osc.start(0);
+  this.register_param("attack", 1.0, 0.0, 0.1, 0.01);
+  this.register_param("decay", 2.0, 0.0, 4.0, 0.1);
+  this.register_param2(this.lp.frequency, "lp-freq-hz", 1000.0, 0.0, 20000, 1);
 
-  this.register_param2(this.osc.frequency, "osc-freq-hz", 2000, 0, 20000, 1);
-  this.register_param2(this.lp.frequency, "lp-freq-hz", 2000, 0, 20000, 1);
-  this.register_param2(this.lp.gain, "lp-gain", 30, 0, 100, 1);
-  this.register_param2(this.lp.Q, "lp-q", 10, 0, 100, 1);
-  this.register_param2(this.hp.frequency, "hp-freq-hz", 300, 0, 20000, 1);
-  this.register_param2(this.hp.gain, "hp-gain", 30, 0, 100, 1);
-  this.register_param2(this.hp.Q, "hp-q", 10, 0, 100, 1);
-  this.register_param("attack", 2, 0, 10, 0.1);
-  this.register_param("sustain", 0, 0, 10, 0.1);
-  this.register_param("lowfreq", 75, 1, 20000, 1);
-  this.register_param("highfreq", 3000, 1, 20000, 1);
+  this.source.connect(this.lp);
+  this.lp.connect(this.gain);
 
+  this.source.start();
 }
 
-wind.prototype.trigger = function(velocity, time) {
+wind.prototype.trigger = function(note, velocity, time) {
   this.gain.gain.setValueAtTime(0.0, ac.currentTime);
-  this.gain.gain.linearRampToValueAtTime(1.0, ac.currentTime + this.p("attack"));
-  this.gain.gain.setTargetAtTime(0.0, ac.currentTime + this.p("attack") + this.p("sustain"), 1.0);
-  this.lp.frequency.setValueAtTime(this.p("lowfreq"), ac.currentTime);
+  this.gain.gain.linearRampToValueAtTime(velocity2gain(velocity), ac.currentTime + this.p("attack"));
 }
 
 wind.prototype.name = function() {
@@ -47,5 +35,5 @@ wind.prototype.name = function() {
 }
 
 wind.prototype.connect = function(node) {
-  this.hp.connect(node);
+  this.gain.connect(node);
 }
