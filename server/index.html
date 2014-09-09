@@ -1,0 +1,199 @@
+<!doctype html>
+<html>
+<head>
+<meta charset=utf-8>
+<title>Democratic Rube Goldberg Electro Maschine</title>
+<meta name="viewport" content="initial-scale=1, maximum-scale=1">
+<style>
+  html {
+    height: 100%;
+    width: 100%;
+    background-color: gray;
+  }
+  .knobroot {
+  }
+
+  h1 {
+    font-family: sans;
+    text-align: right;
+    letter-spacing: -0.08em;
+  }
+
+  #tachatte {
+    margin: 0 auto;
+  }
+  .slider {
+    display:table;
+  }
+
+  .verticalFader {
+    margin-left: 1em;
+    margin-right: 1em;
+    border: 1px black solid;
+    border-radius: 4px;
+    background: -moz-linear-gradient(left, rgba(70,70,70,1) 0%,
+    rgba(128,128,128,1) 44%, rgba(0,0,0,1) 50%,rgba(128,128,128,1) 56%,
+    rgba(70,70,70,1) 100%);
+    background: -webkit-linear-gradient(left, rgba(70,70,70,1) 0%,
+    rgba(128,128,128,1) 44%, rgba(0,0,0,1) 50%,rgba(128,128,128,1) 56%,
+    rgba(70,70,70,1) 100%);
+    box-shadow: 0px 0px 10px black;
+  }
+
+  .horizontalFader {
+    display:table-cell;
+    border: 1px black solid;
+    border-radius: 4px;
+    background: -moz-linear-gradient(top, rgba(70,70,70,1) 0%,
+    rgba(128,128,128,1) 44%, rgba(0,0,0,1) 50%,rgba(128,128,128,1) 56%,
+    rgba(70,70,70,1) 100%);
+    background: -webkit-linear-gradient(top, rgba(70,70,70,1) 0%,
+    rgba(128,128,128,1) 44%, rgba(0,0,0,1) 50%,rgba(128,128,128,1) 56%,
+    rgba(70,70,70,1) 100%);
+    box-shadow: 0px 0px 10px black;
+  }
+
+  .circularFader {
+    background-image: -moz-radial-gradient(50% 50%, circle closest-corner,
+    rgba(128,128,128,1), rgba(70,70,70,1) 60%);
+    background-image: -webkit-radial-gradient(50% 50%, circle closest-corner,
+    rgba(128,128,128,1), rgba(70,70,70,1) 60%);
+    border: 2px black solid;
+    border-radius: 100%;
+    position: relative;
+    box-shadow: 0px 0px 10px black;
+    margin-left: 12px;
+    margin-right: 12px;
+    margin-top: 12px;
+  }
+
+  .circularFader > .inside {
+    position: relative;
+    background-image: -moz-radial-gradient(50% 50%, circle closest-corner,
+    rgba(128,128,128,0), rgba(90,90,90,1) 10%, rgba(0,0,0,1) 100%);
+    background-image: -webkit-radial-gradient(50% 50%, circle closest-corner,
+    rgba(128,128,128,0), rgba(90,90,90,1) 10%, rgba(0,0,0,1) 100%);
+    border: 1px rgba(0,0,0,0.5) solid;
+    border-radius: 100%;
+  }
+
+  .verticalFader > .inside {
+    position: relative;
+    background: black;
+    border: 1px black solid;
+    background: -moz-linear-gradient(top, rgba(0,0,0,1) 0%, rgba(128,128,128,1)
+    50%, rgba(0,0,0,1) 100%);
+    background: -webkit-linear-gradient(top, rgba(0,0,0,1) 0%,
+    rgba(128,128,128,1) 50%, rgba(0,0,0,1) 100%);
+    border-radius: 4px;
+    box-shadow: 1px 1px 2px black;
+  }
+
+  .horizontalFader > .inside {
+    position: relative;
+    background: black;
+    border: 1px black solid;
+    background: -moz-linear-gradient(left, rgba(0,0,0,1) 0%, rgba(128,128,128,1)
+    50%, rgba(0,0,0,1) 100%);
+    background: -webkit-linear-gradient(left, rgba(0,0,0,1) 0%,
+    rgba(128,128,128,1) 50%, rgba(0,0,0,1) 100%);
+    border-radius: 4px;
+    box-shadow: 1px 1px 2px black;
+  }
+
+  .label {
+    width: 5em;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.6em;
+    box-shadow: 0px 0px 10px black;
+    border: 1px solid black;
+    background: -moz-linear-gradient(top, rgba(40,40,40,1) 0%,
+    rgba(128,128,128,1) 50%, rgba(40,40,40,1) 100%);
+    background: -webkit-linear-gradient(top, rgba(40,40,40,1) 0%,
+    rgba(128,128,128,1) 50%, rgba(40,40,40,1) 100%);
+    color: white;
+  }
+
+  .horizontalFader + .label {
+    display: table-cell;
+    vertical-align: middle;
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+</style>
+</head>
+<body>
+<h1>Anarchic Rube Goldberg Electro Maschine</h1>
+<div class=slider id='tachatte'></div>
+</body>
+<script src=http://paul.cx/public/knob.js/knob.js></script>
+<script>
+window.onload = function() {
+  var numero = %%i%%;
+  console.log(numero);
+  var param = {
+    width: window.innerWidth * 0.8,
+    height: window.innerHeight * 0.8,
+    min: 0,
+    max: 100,
+    progression: "linear",
+    type: "circular",
+    increment: 1,
+    unit: "things"
+  };
+
+  var p = document.querySelector("pre");
+  var c = new WebSocket("ws://mhd.paul.cx:80", "sharks");
+
+  var knob = document.getElementById('tachatte');
+  var tc = new Knob(knob, param);
+  tc.onValueChange(function(value) {
+      console.log(value);
+      if (c.readyState == 1) {
+        c.send(JSON.stringify({ID: numero, value: value}));
+      }
+  });
+  var last = null;
+  knob.addEventListener("touchstart", function(evt) {
+    evt.preventDefault();
+    last = evt.touches[0];
+    // p.innerHTML += "start " + last.pageX + " " + last.pageY + "<br>";
+  }, false);
+  knob.addEventListener("touchend", function() {
+      
+  }, false);
+  knob.addEventListener("touchcancel", function() {
+      
+  }, false);
+  knob.addEventListener("touchleave", function(evt) {
+     last = evt.changedTouches[0]; 
+    // p.innerHTML += "leave " + last.pageX + " " +  last.pageY + "<br>";
+  }, false);
+  knob.addEventListener("touchmove", function(evt) {
+    var delta = last.pageY - evt.changedTouches[0].pageY;
+//    p.innerHTML += "move" + evt.changedTouches[0].pageX + " " + 
+//    evt.changedTouches[[0]].pageY + "<br>";
+    // p.innerHTML += "delta: " + delta + " " + tc.value + " " + tc.increment + "<br>"
+    if (delta < 0 ) {
+      tc.setValue(tc.value - tc.increment * 3);
+    } else {
+      tc.setValue(+tc.value + tc.increment * 3);
+    }
+    last = evt.changedTouches[0];
+  }, false);
+
+
+  c.onopen = function() {
+  };
+
+  window.onbeforeunload = function() {
+    console.log("onbeforeunload");
+    c.onclose = function () {}; // disable onclose handler first
+    c.close();
+  };
+}
+</script>
+<pre>
+</pre>
+</html>
